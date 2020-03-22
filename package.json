@@ -1,0 +1,24 @@
+{
+  "name": "trading_crypto_jeseul",
+  "version": "1.0.0",
+  "description": "a trading framework for implementing mutiple trading strategies.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harshakns/trading_crypto_jeseul.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harshakns/trading_crypto_jeseul/issues"
+  },
+  "homepage": "https://github.com/harshakns/trading_crypto_jeseul#readme",
+  "dependencies": {
+    "w": "^1.1.0",
+    "ws": "^7.2.3"
+  }
+}
