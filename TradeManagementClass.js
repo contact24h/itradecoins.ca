@@ -1,5 +1,5 @@
 const eventEmitter = require("events");
-export class TradingManagement {
+class TradeManagement {
   constructor() {
     this.scrip = "";
     this.active = false;
@@ -9,8 +9,8 @@ export class TradingManagement {
     this.takeProfit = null;
     this.direction = "Long";
     this.presentPrice = null;
-    this.getDataEvents = new eventEmitter();
-    this.getDataEvents.on("newData", this.takeActionBasedOnSignal);
+    this.getData = new eventEmitter();
+    this.addConnector = this.addConnector.bind(this);
     this.checkStopLoss = this.checkStopLoss.bind(this);
     this.checkTakeProfit = this.checkTakeProfit.bind(this);
     this.checkQuantity = this.checkQuantity.bind(this);
@@ -20,6 +20,10 @@ export class TradingManagement {
     this.updateQuanity = this.updateQuanity.bind(this);
     this.updateTradeStatus = this.updateTradeStatus.bind(this);
     this.takeActionBasedOnSignal = this.takeActionBasedOnSignal.bind(this);
+  }
+  addConnector(connector) {
+    this.connector = connector;
+    this.getData.on("newData", this.takeActionBasedOnSignal);
   }
 
   checkStopLoss() {
@@ -58,10 +62,13 @@ export class TradingManagement {
   updateTradeStatus(active) {
     this.active = active;
   }
-  takeActionBasedOnSignal(signal, data) {
-    console.log(singal, data);
+
+  takeActionBasedOnSignal({ signal, data }) {
+    console.log("action based on signal", "noAction");
+    this.connector.connection.emit("newData", { action: "noAction" });
+    //console.log(signal, data);
   }
 }
 module.exports = {
-  TradingManagement
+  TradeManagement
 };

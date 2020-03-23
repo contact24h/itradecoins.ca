@@ -11,7 +11,10 @@ class DataPipeWebSocket {
   addConnector(connector) {
     this.webSocket = new webSocket(this.url);
     this.webSocket.onmessage = data => {
-      connector.connection.emit("newData", this.index, JSON.parse(data.data));
+      connector.connection.emit("newData", {
+        index: this.index,
+        data: JSON.parse(data.data)
+      });
     };
     this.webSocket.onerror = data => {
       console.log(error);

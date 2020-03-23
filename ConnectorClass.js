@@ -10,9 +10,9 @@ class Connector {
     this.target = target;
     this.connection.on("newData", this.sendData);
   }
-  sendData(index, data) {
-    this.target.getData.emit("newData", index, data);
-    console.log("sending to target", index);
+  sendData(data) {
+    this.target.getData.emit("newData", data);
+    //console.log("sending to target", data.index);
     //this.target.emit("newData", data);
   }
 }
