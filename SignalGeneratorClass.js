@@ -20,13 +20,24 @@ class SignalGenerator {
   updateData(index, data) {
     this.addData(index, data);
   }
-  generateSignal({ index, data }) {
-    this.signal = "Buy";
-    console.log("signal", this.signal);
-    this.connector.connection.emit("newData", {
-      signal: this.signal,
-      data: {}
-    });
+  generateSignal({ index, data, label }) {
+    //this.signal = "Buy";
+    //this.updatedData[label] = data;
+    ////console.log("signal", this.signal);
+    //if (label === "klines1m") {
+    //  console.log(
+    //    index,
+    //    label,
+    //    new Date(data[data.length - 1][0]).toTimeString(),
+    //    data[data.length - 1][4]
+    //  );
+    //} else {
+    //  console.log(index, label, new Date(data.E).toTimeString(), data.p);
+    //}
+    //this.connector.connection.emit("newData", {
+    //  signal: this.signal,
+    //  data: {}
+    //});
   }
 }
 module.exports = {

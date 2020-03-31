@@ -20,10 +20,14 @@ class TradeManagement {
     this.updateQuanity = this.updateQuanity.bind(this);
     this.updateTradeStatus = this.updateTradeStatus.bind(this);
     this.takeActionBasedOnSignal = this.takeActionBasedOnSignal.bind(this);
+    this.updateValuesBasedOnTradeExecution = this.updateValuesBasedOnTradeExecution.bind(
+      this
+    );
   }
   addConnector(connector) {
     this.connector = connector;
     this.getData.on("newData", this.takeActionBasedOnSignal);
+    this.getData.on("updateData", this.updateValuesBasedOnTradeExecution);
   }
 
   checkStopLoss() {
@@ -67,6 +71,13 @@ class TradeManagement {
     console.log("action based on signal", "noAction");
     this.connector.connection.emit("newData", { action: "noAction" });
     //console.log(signal, data);
+  }
+  updateValuesBasedOnTradeExecution(result) {
+    if (result.data === false) {
+      console.log("dont update values");
+    } else {
+      console.log("update values");
+    }
   }
 }
 module.exports = {

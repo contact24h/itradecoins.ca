@@ -6,16 +6,44 @@ class Logger {
     this.getData = new eventEmitter();
     //this.connector = null;
     //this.addConnector = this.addConnector.bind(this);
-    this.getData.on("newData", this.logData);
+    this.readData = this.readData.bind(this);
+    this.writeData = this.writeData.bind(this);
+    this.getData.on("newData", this.writeData);
   }
   //addConnector(connector) {
   //  this.connector = connector;
   //  this.getData.on("newData", this.action);
   //}
-  logData(data) {
-    console.log("logging done", data);
+  readData(data) {
+    const d = fs.readFileSync(this.filepath).toString("utf8");
+    console.log(d);
+  }
+
+  async writeData(data) {
+    try {
+      await fs.promises.writeFile(this.filepath, "\n" + data, {
+        encoding: "utf8",
+        flag: "a"
+      });
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }
+//const lg = new Logger("./logs.txt");
+//lg.readData();
+
+//setInterval(() => {
+//lg.writeData(new Date().toUTCString())
+//  .then(res => {
+//    console.log(res);
+//    lg.readData();
+//  })
+//  .catch(err => {
+//    console.log(err.message);
+//  });
+//}, 30000);
+
 module.exports = {
   Logger
 };

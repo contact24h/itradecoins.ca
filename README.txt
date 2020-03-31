@@ -18,7 +18,7 @@ trademanagement
 Connector
 tradePlacement
 Connector
-logger, error logger
+logger 
 
 
 
