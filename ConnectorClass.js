@@ -11,9 +11,12 @@ class Connector {
     this.connection.on("newData", this.sendData);
   }
   sendData(data) {
-    this.target.getData.emit("newData", data);
-    //console.log("sending to target", data.index);
-    //this.target.emit("newData", data);
+    try {
+      //console.log(data);
+      this.target.getData.emit("newData", data);
+    } catch (err) {
+      console.log(err.message);
+    }
   }
 }
 module.exports = {

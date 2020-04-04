@@ -4,49 +4,56 @@ const url = require("url");
 //console.log(URL);
 
 class DataPipeWebSocket {
-  constructor(index, url, subscription) {
-    this.index = index;
+  constructor(url) {
     this.url = url;
-    //this.webSocket = null;
-    this.subscription = subscription;
+    //this.subscription = subscription;
     this.addConnector = this.addConnector.bind(this);
     this.subscribe = this.subscribe.bind(this);
     this.dataSanitizer = this.dataSanitizer.bind(this);
     this.webSocket = new webSocket(this.url);
     this.labels = { aggTrade: "price" };
+    this.open = false;
+    this.subscriptions = [];
   }
   addConnector(connector) {
     this.webSocket.onmessage = data => {
       let da;
       try {
         da = this.dataSanitizer(data.data);
-        //console.log(da);
       } catch (err) {
         console.log(err.message);
       }
       connector.connection.emit("newData", {
-        index: this.index,
         label: this.labels[da.e],
-        data: da
+        payload: da
       });
     };
     this.webSocket.onerror = err => {
       console.log(err.message);
     };
     this.webSocket.onopen = () => {
-      this.webSocket.send(JSON.stringify(this.subscription));
+      //this.webSocket.send(JSON.stringify(this.subscription));
+      this.open = true;
+      this.subscriptions.forEach(e => {
+        this.webSocket.send(JSON.stringify(e));
+      });
+      this.subscriptions = [];
     };
   }
   subscribe(message) {
-    this.webSocket.send(JSON.stringify(message));
+    if (!this.open) {
+      this.subscriptions.push(message);
+    } else {
+      this.webSocket.send(JSON.stringify(message));
+    }
   }
   dataSanitizer(data) {
     return JSON.parse(data);
   }
 }
 class DataPipeREST {
-  constructor(index, Url) {
-    this.index = index;
+  constructor(Url) {
+    //this.index = index;
     this.URL = Url;
     this.connector = null;
     this.interval = null;
@@ -65,9 +72,8 @@ class DataPipeREST {
         try {
           //console.log(data.length);
           this.connector.connection.emit("newData", {
-            index: this.index,
-            data,
-            label
+            payload: data,
+            label: "klines" + interval
           });
         } catch (err) {
           console.log(err.message);
@@ -96,7 +102,7 @@ class DataPipeREST {
       .catch(err => console.log(err.message));
   }
   getKlinesAndStreamtoConnector() {}
-  repeatGetKlinesAndStreamtoConnectorForEachInterval(interval, symbol, label) {
+  repeatGetKlinesAndStreamtoConnectorForEachInterval(interval, symbol) {
     const min = 60000;
     const timeObject = {
       "1m": min,
@@ -114,9 +120,9 @@ class DataPipeREST {
       "3d": min * 4320,
       "1w": min * 10080
     };
-    this.getKlinesAndStreamtoConnector(interval, symbol, label);
+    this.getKlinesAndStreamtoConnector(interval, symbol);
     setInterval(() => {
-      this.getKlinesAndStreamtoConnector(interval, symbol, label);
+      this.getKlinesAndStreamtoConnector(interval, symbol);
     }, timeObject[interval]);
   }
 }

@@ -9,6 +9,7 @@ class SignalGenerator {
     this.updateData = this.updateData.bind(this);
     this.generateSignal = this.generateSignal.bind(this);
     this.addConnector = this.addConnector.bind(this);
+    this.getData.on("newData", this.generateSignal);
   }
   addConnector(connector) {
     this.connector = connector;
@@ -20,7 +21,8 @@ class SignalGenerator {
   updateData(index, data) {
     this.addData(index, data);
   }
-  generateSignal({ index, data, label }) {
+  generateSignal({ label, payload }) {
+    //console.log(label);
     //this.signal = "Buy";
     //this.updatedData[label] = data;
     ////console.log("signal", this.signal);

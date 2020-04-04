@@ -41,24 +41,25 @@ const tradeManagementTotradePlacement = new Connector();
 const tradePlacementToLogger = new Connector();
 
 //create data streams
-const wp = new DataPipeWebSocket(0, binanceWebsocketURL, subscription1);
-const rp = new DataPipeREST(1, binanceRESTEndPoint);
+const wp = new DataPipeWebSocket(binanceWebsocketURL);
+const rp = new DataPipeREST(binanceRESTEndPoint);
 
 //create new signal generator
 const sg = new SignalGenerator();
 //create new trade management
-const tm = new TradeManagement();
+const tm = new TradeManagement(50, 100, 10);
 //create new trade placement
 const tp = new TradePlacement();
 //create new logger
 const lg = new Logger(filepath);
+//
 
 //signal generation
 sg.vwma = undefined;
-sg.generateSignal = function({ index, data, label }) {
+sg.signal = "None";
+sg.generateSignal = function({ payload, label }) {
   //console.log(label);
-  sg.signal = "None";
-  sg.updatedData[label] = data;
+  sg.updatedData[label] = payload;
   //console.log("signal", this.signal);
   if (label === "klines1m") {
     let temp = sg.updatedData.klines1m.slice(450);
@@ -73,8 +74,8 @@ sg.generateSignal = function({ index, data, label }) {
         console.log(err.message);
         return;
       }
-      sg.vwma = results[0][results[0].length - 1];
-      console.log(sg.vwma);
+      sg.vwma = Number(results[0][results[0].length - 1].toFixed(2));
+      //console.log(sg.vwma);
       return;
     });
     //console.log(
@@ -85,27 +86,56 @@ sg.generateSignal = function({ index, data, label }) {
     //);
   } else if (label === "price") {
     //console.log(sg);
-    if (sg.vwma && data.p) {
-      if (sg.vwma < Number(data.p)) {
+    if (sg.vwma && payload.p) {
+      if (sg.vwma < Number(payload.p)) {
         sg.signal = "Buy";
       } else {
         sg.signal = "Sell";
       }
-      console.log(
-        new Date(data.E).toTimeString().split(" ")[0],
-        " ",
-        sg.vwma,
-        " ",
-        data.p,
-        " ",
-        sg.signal
-      );
+      //console.log(
+      //  new Date(payload.E).toTimeString().split(" ")[0],
+      //  " ",
+      //  sg.vwma,
+      //  " ",
+      //  payload.p,
+      //  " ",
+      //  sg.signal
+      //);
     }
   }
-  //sg.connector.connection.emit("newData", {
-  //  signal: this.signal,
-  //  data: {}
-  //});
+  try {
+    sg.connector.connection.emit("newData", {
+      label: "signal",
+      payload: {
+        signal: sg.signal,
+        vwma: sg.vwma,
+        price: sg.updatedData.price ? Number(sg.updatedData.price.p) : null
+      }
+    });
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+//sg.getData.on("newData", sg.generateSignal);
+tm.intervalBetweenSignals = 6000;
+tm.takeActionBasedOnSignal = function({ label, payload }) {
+  //console.log("action based on signal", "noAction");
+  console.log(label, payload);
+  tm.presentPrice = payload.price;
+  if (tm.active) {
+    //check if stop 	loss is hit
+    if (tm.checkStopLoss()) {
+      //check if take profit is hit
+      //if not reached, check the price, if it is greater than  the previous
+      //high/loww trail the stop loss
+    }
+  } else {
+    tm.initializeTrade(payload.price, payload.signal);
+    this.connector.connection.emit("newdata", {
+      label: "tradeinitialize",
+      payload: [{}, {}, {}]
+    });
+  }
 };
 
 //connect the connectors to their respective targets
@@ -117,11 +147,9 @@ tradePlacementToLogger.connectTarget(lg);
 //connect connectors to their respective origins
 tp.addConnector(tradePlacementToLogger);
 tm.addConnector(tradeManagementTotradePlacement);
+tm.getData.on("newData", tm.takeActionBasedOnSignal);
 sg.addConnector(signalToTradeManagement);
 wp.addConnector(dataToSignalConnector);
+wp.subscribe(subscription1);
 rp.addConnector(dataToSignalConnector);
-rp.repeatGetKlinesAndStreamtoConnectorForEachInterval(
-  "1m",
-  "BTCUSDT",
-  "klines1m"
-);
+rp.repeatGetKlinesAndStreamtoConnectorForEachInterval("1m", "BTCUSDT");

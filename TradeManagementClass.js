@@ -1,14 +1,18 @@
 const eventEmitter = require("events");
 class TradeManagement {
-  constructor() {
-    this.scrip = "";
+  constructor(scrip, riskPerTrade, profitPerTrade, trailForEach) {
+    this.scrip = scrip;
     this.active = false;
     this.processing = false;
     this.quantity = "";
+    this.riskPerTrade = 0;
     this.stopLoss = null;
     this.takeProfit = null;
-    this.direction = "Long";
+    this.direction = null;
     this.presentPrice = null;
+    this.riskPerTrade = riskPerTrade;
+    this.profitPerTrade = profitPerTrade;
+    this.trailForEach = trailForEach;
     this.getData = new eventEmitter();
     this.addConnector = this.addConnector.bind(this);
     this.checkStopLoss = this.checkStopLoss.bind(this);
@@ -23,6 +27,16 @@ class TradeManagement {
     this.updateValuesBasedOnTradeExecution = this.updateValuesBasedOnTradeExecution.bind(
       this
     );
+  }
+  initializeTrade(price, direction) {
+    this.active = true;
+    this.quantity = price / this.riskPerTrade;
+    this.direction = direction;
+    if (direction === "Buy") {
+      this.stopLoss = price - this.riskPerTrade;
+    } else {
+      this.stopLoss = price + this.riskPerTrade;
+    }
   }
   addConnector(connector) {
     this.connector = connector;
