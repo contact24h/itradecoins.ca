@@ -118,23 +118,61 @@ sg.generateSignal = function({ payload, label }) {
 };
 //sg.getData.on("newData", sg.generateSignal);
 tm.intervalBetweenSignals = 6000;
+tm.intervalConditionPassed = false;
+tm.directionDuringInterval = null;
+tm.timer = 0;
+setInterval(() => {
+  tm.active = false;
+}, 30000);
 tm.takeActionBasedOnSignal = function({ label, payload }) {
   //console.log("action based on signal", "noAction");
-  console.log(label, payload);
+  //console.log(label, payload);
+  //
   tm.presentPrice = payload.price;
   if (tm.active) {
     //check if stop 	loss is hit
-    if (tm.checkStopLoss()) {
-      //check if take profit is hit
-      //if not reached, check the price, if it is greater than  the previous
-      //high/loww trail the stop loss
-    }
+    //if (tm.checkStopLoss()) {
+    //check if take profit is hit
+    //if not reached, check the price, if it is greater than  the previous
+    //high/loww trail the stop loss
+    //console.log("trade active doing nothing");
   } else {
-    tm.initializeTrade(payload.price, payload.signal);
-    this.connector.connection.emit("newdata", {
-      label: "tradeinitialize",
-      payload: [{}, {}, {}]
-    });
+    if (tm.intervalConditionPassed) {
+      //console.log("trade initialized");
+      tm.initializeTrade(payload.price, payload.signal);
+      //console.log("details sent to trade placement");
+      //console.log(tm.connector.connection);
+      tm.active = true;
+      tm.connector.connection.emit("newData", {
+        label: "tradeInitialize",
+        payload: [{}, {}, {}]
+      });
+      //console.log("trade active", new Date().toTimeString());
+      tm.intervalConditionPassed = false;
+    } else {
+      if (!tm.intervalProcessing) {
+        //console.log("timer started");
+        tm.intervalProcessing = true;
+        tm.direction = payload.signal;
+        tm.timer = setTimeout(() => {
+          tm.intervalConditionPassed = true;
+          //console.log("timer condition passed");
+          tm.intervalProcessing = false;
+        }, tm.intervalBetweenSignals);
+      } else {
+        if (tm.direction !== payload.signal) {
+          //console.log("timer condition failed");
+          clearTimeout(tm.timer);
+          tm.direction = payload.signal;
+          //console.log("restarting the timer");
+          tm.timer = setTimeout(() => {
+            tm.intervalProcessing = false;
+            tm.intervalConditionPassed = true;
+            //console.log("timer condition passed");
+          }, tm.intervalBetweenSignals);
+        }
+      }
+    }
   }
 };
 
@@ -147,7 +185,7 @@ tradePlacementToLogger.connectTarget(lg);
 //connect connectors to their respective origins
 tp.addConnector(tradePlacementToLogger);
 tm.addConnector(tradeManagementTotradePlacement);
-tm.getData.on("newData", tm.takeActionBasedOnSignal);
+//tm.getData.on("newData", tm.takeActionBasedOnSignal);
 sg.addConnector(signalToTradeManagement);
 wp.addConnector(dataToSignalConnector);
 wp.subscribe(subscription1);

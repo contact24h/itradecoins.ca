@@ -11,7 +11,7 @@ class TradePlacement {
     this.deleteTrade = this.deleteTrade.bind(this);
     this.noAction = this.noAction.bind(this);
     this.action = this.action.bind(this);
-    this.getData.on("newData", this.action);
+    //this.getData.on("newData", this.action);
   }
   addConnector(connector) {
     this.connector = connector;
@@ -42,16 +42,20 @@ class TradePlacement {
     });
   }
   action(data) {
-    if (data.action === "placeTrade") {
-      this.placeTrade();
-    } else if (data.action === "updateTrade") {
-      this.updateTrade();
-    } else if (data.action === "delteTrade") {
-      this.deleteTrade();
-    } else {
-      this.noAction();
+    console.log("running1", data);
+    if (data.label === "tradeInitialize") {
+      console.log("Trade placed", "stopLoss placed", "Target placed");
     }
-    console.log("action", data);
+    //if (data.action === "placeTrade") {
+    //  this.placeTrade();
+    //} else if (data.action === "updateTrade") {
+    //  this.updateTrade();
+    //} else if (data.action === "delteTrade") {
+    //  this.deleteTrade();
+    //} else {
+    //  this.noAction();
+    //}
+    //console.log("action", data);
   }
 }
 module.exports = {
