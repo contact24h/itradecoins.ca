@@ -10,15 +10,52 @@ sell.
 6. order placement: places the orde
 
 #####rough schematics###########
-dataPipes(one or more)
-Connector
+
+
+		----------------------
+	   dataPipes(one or more)
+		----------------------
+				|||
+				VVV
+			----------
+			Connector |
+			----------
+				|||
+				VVV
+------------------------------------------------------
 signalGenerator(generates the signal based on the data)
-Connector
-trademanagement
-Connector
-tradePlacement
-Connector
-logger 
+------------------------------------------------------
+				|||
+				VVV
+			----------
+			Connector
+			----------
+				|||
+				VVV
+		----------------
+		trademanagement
+		----------------
+				|||
+				VVV
+			----------
+		   | Connector |
+			----------
+				|||
+				VVV
+			-------------
+			tradePlacement
+			-------------
+				|||
+				VVV
+			----------
+			Connector
+			----------
+				|||
+				VVV
+			   ------
+			   logger
+			   ------ 
+
 
 
 
