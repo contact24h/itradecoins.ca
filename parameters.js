@@ -25,11 +25,11 @@ const subscription2 = {
 //trade Mangement
 const riskParameters = {
   unit: "percentage",
+  portfolio: 10000,
   riskPerTrade: 10,
-  profitPerTrade: 10,
-  trailForEach: 5
+  profitPerTrade:10, 
+  trailForEach: 0.5 // percent increase in price and
 };
-//console.log(transformRiskParameters(150, riskParameters));
 
 //Logger
 const filepath = "./" + tradingStrategyName + ".log.txt";

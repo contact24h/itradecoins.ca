@@ -30,7 +30,7 @@ function placeOrder() {
     type: "LIMIT",
     quantity: 1,
     timeInForce: "GTC",
-    price: 5000,
+    price: 9200,
     //recvWindow: 500000,
     timestamp: timestamp
   };

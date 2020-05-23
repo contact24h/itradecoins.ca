@@ -26,7 +26,7 @@ const rp = new DataPipeREST(binanceRESTEndPoint);
 //create SignalGenerators
 const sg = new EmaSignalGeneratorClass();
 //create TradeManagement
-const tm = new EmaTradeManagementClass();
+const tm = new EmaTradeManagementClass(riskParameters);
 
 //create connectors
 const dataToSignalConnector = new Connector();

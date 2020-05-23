@@ -40,6 +40,9 @@ class EmaSignalGeneratorClass extends SignalGenerator {
       }
     }
     console.log(
+      "\n-----------------------------------------------------------"
+    );
+    console.log(
       "signal generator",
       this.signal,
       this.vwma,

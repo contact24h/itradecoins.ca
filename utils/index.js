@@ -5,25 +5,36 @@ const transformRiskParameters = (price, riskParameters) => {
   if (
     !riskParameters.riskPerTrade ||
     !riskParameters.profitPerTrade ||
-    !riskParameters.trailForEach
+    !riskParameters.trailForEach ||
+    !riskParameters.portfolio
   ) {
-    throw new Error("riskperTrade, profitperTrade, trailForEach are mandatory");
+    throw new Error(
+      "riskperTrade, profitperTrade, trailForEach, portfolio are mandatory"
+    );
   }
-  const { riskPerTrade, profitPerTrade, trailForEach } = riskParameters;
-  let r, p, t;
+  const {
+    riskPerTrade,
+    profitPerTrade,
+    trailForEach,
+    portfolio
+  } = riskParameters;
+  let r, p, t, q;
   if (riskParameters.unit === "percentage") {
-    r = (Number(price) * riskPerTrade) / 100;
-    p = (Number(price) * profitPerTrade) / 100;
-    t = (Number(price) * trailForEach) / 100;
+    r = (Number(portfolio) * riskPerTrade) / 100;
+    p = (Number(portfolio) * profitPerTrade) / 100;
+    t = (Number(portfolio) * trailForEach) / 100;
+    q = r / price;
   } else {
     r = riskPerTrade;
     p = profitPerTrade;
     t = trailForEach;
+    q = riskPerTrade / price;
   }
   return {
-    riskperTrade: r,
-    profitperTrade: p,
-    trailForEach: t
+    riskPerTrade: r,
+    profitPerTrade: p,
+    trailForEach: t,
+    quantity: q
   };
 };
 

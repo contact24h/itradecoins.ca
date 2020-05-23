@@ -1,8 +1,9 @@
+const { transformRiskParameters } = require("./utils/index.js");
 const { TradeManagementClass } = require("./lib/TradeManagementClass.js");
 
 class EmaTradeManagementClass extends TradeManagementClass {
-  constructor() {
-    super();
+  constructor(riskParameters) {
+    super(riskParameters);
     this.getData.on("newData", this.takeActionBasedOnSignal);
     this.getData.on("feedback", this.updateValuesBasedOnTradeExecution);
   }
@@ -10,22 +11,47 @@ class EmaTradeManagementClass extends TradeManagementClass {
     const { signal, price, vwma } = data.payload;
     //console.log("trademanagement", data);
     if (this.active) {
-      if (checkStopLoss) {
+      if (this.checkStopLoss()) {
         console.log("stopLoss triggered,clear all trades");
-      } else if (checkTakeProfit) {
+        this.active = false;
+      } else if (this.checkTakeProfit()) {
         console.log("take profit reached, clear all trades");
+        this.active = false;
       } else {
-        console.log("maintain trade");
+        console.log("Action : maintain trade");
+        console.log(
+          `Buy ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
+        );
+
         return;
       }
     } else {
       if (signal === "BUY") {
         this.active = true;
-        console.log("Action : Buy and sl and tp placed");
+        const rp = transformRiskParameters(price, this.riskParameters);
+        console.log(rp);
+        this.direction = "BUY";
+        this.quantity = rp.quantity;
+        this.presentPrice = price;
+        this.stopLoss = this.presentPrice - rp.riskPerTrade;
+        this.takeProfit = this.presentPrice + rp.profitPerTrade;
+        //this.trailForEach = rp.trailForEach;
+        console.log(
+          `Action: Buy ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
+        );
         return;
       } else if (signal === "SELL") {
         this.active = true;
-        console.log("Action : Sell and sl and tp placed");
+        const rp = transformRiskParameters(price, this.riskParameters);
+        this.direction = "BUY";
+        this.quantity = rp.quantity;
+        this.presentPrice = price;
+        this.stopLoss = this.presentPrice - rp.riskPerTrade;
+        this.takeProfit = this.presentPrice + rp.profitPerTrade;
+        //trailForEach
+        console.log(
+          `Action: Sell ${this.quantity} @${this.price}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
+        );
         return;
       } else {
         console.log("do nothing");
