@@ -39,15 +39,15 @@ class EmaSignalGeneratorClass extends SignalGenerator {
         }
       }
     }
-    console.log(
-      "\n-----------------------------------------------------------"
-    );
-    console.log(
-      "signal generator",
-      this.signal,
-      this.vwma,
-      this.updatedData.price.p
-    );
+    //console.log(
+    //  "\n-----------------------------------------------------------"
+    //);
+    //console.log(
+    //  "signal generator",
+    //  this.signal,
+    //  this.vwma,
+    //  this.updatedData.price.p
+    //);
 
     try {
       if (this.signal && this.vwma && this.updatedData.price.p) {

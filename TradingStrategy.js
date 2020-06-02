@@ -3,7 +3,7 @@ const { DataPipeWebSocket, DataPipeREST } = require("./lib/DataPipeClass.js");
 const EmaSignalGeneratorClass = require("./EmaSignalGeneratorClass.js");
 const EmaTradeManagementClass = require("./EmaTradeManagementClass.js");
 const { TradeManagementClass } = require("./lib/TradeManagementClass.js");
-const { TradePlacement } = require("./lib/TradePlacementClass.js");
+const { TradePlacementClass } = require("./lib/TradePlacementClass.js");
 const { Logger } = require("./lib/LoggerClass.js");
 const tulind = require("tulind");
 
@@ -27,19 +27,29 @@ const rp = new DataPipeREST(binanceRESTEndPoint);
 const sg = new EmaSignalGeneratorClass();
 //create TradeManagement
 const tm = new EmaTradeManagementClass(riskParameters);
+//create TradePlacement
+const tp = new TradePlacementClass();
+//create Logger
+const lg = new Logger(filepath);
 
 //create connectors
 const dataToSignalConnector = new Connector();
 const SignalGeneratorToTradeManagement = new Connector();
+const TradeMangementToTradePlacement = new Connector();
+const TradePlacementToLogger = new Connector();
 
 //connect connectors to Destination
 dataToSignalConnector.connectTarget(sg);
 SignalGeneratorToTradeManagement.connectTarget(tm);
+TradeMangementToTradePlacement.connectTarget(tp);
+TradePlacementToLogger.connectTarget(lg);
 
 //connect connectors to Sources
 wp.addConnector(dataToSignalConnector);
 rp.addConnector(dataToSignalConnector);
 sg.addConnector(SignalGeneratorToTradeManagement);
+tm.addConnector(TradeMangementToTradePlacement);
+tp.addConnector(TradePlacementToLogger);
 
 //starting "1m historical data"
 rp.repeatGetKlinesAndStreamtoConnectorForEachInterval("1m", "BTCUSDT");

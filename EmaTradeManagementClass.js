@@ -7,6 +7,16 @@ class EmaTradeManagementClass extends TradeManagementClass {
     this.getData.on("newData", this.takeActionBasedOnSignal);
     this.getData.on("feedback", this.updateValuesBasedOnTradeExecution);
   }
+  sendDataToTradePlacement = (action, price, quantity) => {
+    this.connector.connection.emit("newData", {
+      label: "action",
+      payload: {
+        action,
+        price,
+        quantity
+      }
+    });
+  };
   takeActionBasedOnSignal = data => {
     const { signal, price, vwma } = data.payload;
     //console.log("trademanagement", data);
@@ -18,10 +28,10 @@ class EmaTradeManagementClass extends TradeManagementClass {
         console.log("take profit reached, clear all trades");
         this.active = false;
       } else {
-        console.log("Action : maintain trade");
-        console.log(
-          `Buy ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
-        );
+        //console.log("Action : maintain trade");
+        //console.log(
+        //  `Buy ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
+        //);
 
         return;
       }
@@ -39,6 +49,7 @@ class EmaTradeManagementClass extends TradeManagementClass {
         console.log(
           `Action: Buy ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
         );
+        this.sendDataToTradePlacement("BUY", this.presentPrice, this.quantity);
         return;
       } else if (signal === "SELL") {
         this.active = true;
@@ -52,6 +63,7 @@ class EmaTradeManagementClass extends TradeManagementClass {
         console.log(
           `Action: Sell ${this.quantity} @${this.price}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
         );
+        this.sendDataToTradePlacement("SELL", this.price, this.quantity);
         return;
       } else {
         console.log("do nothing");

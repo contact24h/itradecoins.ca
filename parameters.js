@@ -27,7 +27,7 @@ const riskParameters = {
   unit: "percentage",
   portfolio: 10000,
   riskPerTrade: 10,
-  profitPerTrade:10, 
+  profitPerTrade: 10,
   trailForEach: 0.5 // percent increase in price and
 };
 
