@@ -37,12 +37,15 @@ const dataToSignalConnector = new Connector();
 const SignalGeneratorToTradeManagement = new Connector();
 const TradeMangementToTradePlacement = new Connector();
 const TradePlacementToLogger = new Connector();
+//feedback connector
+const TradePlacementToTradeManagement = new Connector();
 
 //connect connectors to Destination
 dataToSignalConnector.connectTarget(sg);
 SignalGeneratorToTradeManagement.connectTarget(tm);
 TradeMangementToTradePlacement.connectTarget(tp);
 TradePlacementToLogger.connectTarget(lg);
+TradePlacementToTradeManagement.connectFeedbackTarget(tm);
 
 //connect connectors to Sources
 wp.addConnector(dataToSignalConnector);
@@ -50,6 +53,7 @@ rp.addConnector(dataToSignalConnector);
 sg.addConnector(SignalGeneratorToTradeManagement);
 tm.addConnector(TradeMangementToTradePlacement);
 tp.addConnector(TradePlacementToLogger);
+tp.addFeedbackConnector(TradePlacementToTradeManagement);
 
 //starting "1m historical data"
 rp.repeatGetKlinesAndStreamtoConnectorForEachInterval("1m", "BTCUSDT");

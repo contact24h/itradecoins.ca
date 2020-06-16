@@ -105,178 +105,143 @@ function createWebSocket(listenKey) {
   function handleMessages(data) {
     console.log(data);
   }
-  ws1 = new webSocket(`wss://stream.binancefuture.com/ws/${listenKey}`);
-  ws1.on("open", () => {
+  const wsstream = new webSocket(
+    `wss://stream.binancefuture.com/ws/${listenKey}`
+  );
+  wsstream.on("open", () => {
     console.log("websocket opened");
   });
-  ws1.on("message", data => {
+  wsstream.on("message", data => {
     console.log(data);
   });
-  ws1.on("error", err => {
+  wsstream.on("error", err => {
     console.log(err.message);
   });
   console.log("ws initiated", listenKey);
   keepConnectionAlive();
+  return wsstream;
 }
 
 function startUserDataStream() {
-  listenKey("GET")
+  return listenKey("GET")
     .then(value => {
       createWebSocket(value.listenKey);
     })
     .catch(err => console.log(err.message));
 }
 startUserDataStream();
-////signal generation
-//sg.vwma = undefined;
-//sg.signal = "None";
-//sg.generateSignal = function({ payload, label }) {
-//  //console.log(label);
-//  sg.updatedData[label] = payload;
-//  //console.log("signal", this.signal);
-//  if (label === "klines1m") {
-//    let temp = sg.updatedData.klines1m.slice(450);
-//    let close = temp.map(e => Number(e[4]));
-//    let volume = temp.map(e => Number(e[5]));
-//    //console.log(temp, close, volume);
-//    tulind.indicators.vwma.indicator([close, volume], [15], function(
-//      err,
-//      results
-//    ) {
-//      if (err) {
-//        console.log(err.message);
-//        return;
-//      }
-//      sg.vwma = Number(results[0][results[0].length - 1].toFixed(2));
-//      //console.log(sg.vwma);
-//      return;
-//    });
-//    //console.log(
-//    //  index,
-//    //  label,
-//    //  new Date(data[data.length - 1][0]).toTimeString(),
-//    //  data[data.length - 1][4]
-//    //);
-//  } else if (label === "price") {
-//    //console.log(sg);
-//    if (sg.vwma && payload.p) {
-//      if (sg.vwma < Number(payload.p)) {
-//        sg.signal = "Buy";
-//      } else {
-//        sg.signal = "Sell";
-//      }
-//      //console.log(
-//      //  new Date(payload.E).toTimeString().split(" ")[0],
-//      //  " ",
-//      //  sg.vwma,
-//      //  " ",
-//      //  payload.p,
-//      //  " ",
-//      //  sg.signal
-//      //);
-//    }
-//  }
-//  try {
-//    sg.connector.connection.emit("newData", {
-//      label: "signal",
-//      payload: {
-//        signal: sg.signal,
-//        vwma: sg.vwma,
-//        price: sg.updatedData.price ? Number(sg.updatedData.price.p) : null
-//      }
-//    });
-//  } catch (err) {
-//    console.log(err.message);
-//  }
-//};
-////sg.getData.on("newData", sg.generateSignal);
-//tm.intervalBetweenSignals = 6000;
-//tm.intervalConditionPassed = false;
-//tm.directionDuringInterval = null;
-//tm.timer = 0;
-//setInterval(() => {
-//  tm.active = false;
-//}, 30000);
-//tm.takeActionBasedOnSignal = function({ label, payload }) {
-//  //console.log("action based on signal", "noAction");
-//  //console.log(label, payload);
-//  //
-//  tm.presentPrice = payload.price;
-//  if (tm.active) {
-//    //check if stop 	loss is hit
-//    //if (tm.checkStopLoss()) {
-//    //check if take profit is hit
-//    //if not reached, check the price, if it is greater than  the previous
-//    //high/loww trail the stop loss
-//    //console.log("trade active doing nothing");
-//  } else {
-//    if (tm.intervalConditionPassed) {
-//      //console.log("trade initialized");
-//      tm.initializeTrade(payload.price, payload.signal);
-//      //console.log("details sent to trade placement");
-//      //console.log(tm.connector.connection);
-//      tm.active = true;
-//      tm.connector.connection.emit("newData", {
-//        label: "tradeInitialize",
-//        payload: [{}, {}, {}]
-//      });
-//      //console.log("trade active", new Date().toTimeString());
-//      tm.intervalConditionPassed = false;
-//    } else {
-//      if (!tm.intervalProcessing) {
-//        //console.log("timer started");
-//        tm.intervalProcessing = true;
-//        tm.direction = payload.signal;
-//        tm.timer = setTimeout(() => {
-//          tm.intervalConditionPassed = true;
-//          //console.log("timer condition passed");
-//          tm.intervalProcessing = false;
-//        }, tm.intervalBetweenSignals);
-//      } else {
-//        if (tm.direction !== payload.signal) {
-//          //console.log("timer condition failed");
-//          clearTimeout(tm.timer);
-//          tm.direction = payload.signal;
-//          //console.log("restarting the timer");
-//          tm.timer = setTimeout(() => {
-//            tm.intervalProcessing = false;
-//            tm.intervalConditionPassed = true;
-//            //console.log("timer condition passed");
-//          }, tm.intervalBetweenSignals);
-//        }
-//      }
-//    }
-//  }
-//};
-//
-//connect the connectors to their respective targets
-//dataToSignalConnector.connectTarget(sg);
-//signalToTradeManagement.connectTarget(tm);
-//tradeManagementTotradePlacement.connectTarget(tp);
-//tradePlacementToLogger.connectTarget(lg);
 
-//connect connectors to their respective origins
-//tp.addConnector(tradePlacementToLogger);
-//tm.addConnector(tradeManagementTotradePlacement);
-//tm.getData.on("newData", tm.takeActionBasedOnSignal);
-//sg.addConnector(signalToTradeManagement);
-//wp.addConnector(dataToSignalConnector);
-//wp.subscribe(subscription1);
+function placeTakeProfitOrder(params) {
+  //let timestamp = new Date().getTime();
+  //console.log(timestamp);
+  //const params = {
+  //  symbol: "BTCUSDT",
+  //  side: "BUY",
+  //  type: "TRAILING_STOP_MARKET",
+  //  quantity: 1,
+  //  //timeInForce: "GTC",
+  //  price: 9410,
+  //  stopPrice: 9410,
+  //  callbackRate: 0.2,
+  //  //recvWindow: 500000,
+  //  timestamp: timestamp
+  //};
 
-////create connectors
-////create data to signal connector
-//const dataToSignalConnector = new Connector();
-////create signal to trade management connector
-//const signalToTradeManagement = new Connector();
-////create tradeManagement to tradePlacement connector
-//const tradeManagementTotradePlacement = new Connector();
-////create tradePlacement to logger connector,
-//const tradePlacementToLogger = new Connector();
-//create new signal generator
-//const sg = new SignalGenerator();
-//create new trade management
-//const tm = new TradeManagement(50, 100, 10);
-//create new trade placement
-//const tp = new TradePlacement();
-//create new logger
-//const lg = new Logger(filepath);
+  let res = makeSignature(params);
+  params.signature = res;
+  let qs = res.qs + "signature=" + res.signature;
+  //console.log(qs);
+
+  return fetch(testingAPI + "/fapi/v1/order" + "?" + qs, {
+    method: "POST",
+    headers: {
+      "X-MBX-APIKEY": binanceAPI
+      //  "Content-Type": "application/json"
+    }
+  })
+    .then(res => {
+      //console.log(res);
+      return res.json();
+    })
+    .then(r => r)
+    .catch(err => console.log(err.message));
+}
+//placeTakeProfitOrder();
+function convertIntoOrderParams(
+  symbol,
+  side,
+  type,
+  price,
+  quantity,
+  stopPrice,
+  callbackRate
+) {
+  let timestamp = new Date().getTime();
+  let params = {
+    symbol,
+    side,
+    type,
+    quantity,
+    timestamp
+  };
+  if (type === "MARKET") {
+    return { ...params };
+  } else if (type === "STOP_MARKET") {
+    return { ...params, stopPrice };
+  } else if (type === "TAKE_PROFIT_MARKET") {
+    return { ...params, stopPrice };
+  }
+}
+let c = convertIntoOrderParams("BTCUSDT", "BUY", "MARKET", null, 1, null, null);
+let d = convertIntoOrderParams(
+  "BTCUSDT",
+  "SELL",
+  "STOP_MARKET",
+  null,
+  1,
+  9000,
+  null
+);
+let e = convertIntoOrderParams(
+  "BTCUSDT",
+  "SELL",
+  "TAKE_PROFIT_MARKET",
+  null,
+  1,
+  9500,
+  null
+);
+//console.log(c);
+//console.log(d);
+//console.log(e);
+//const orders = Promise.all([e].map(params => placeTakeProfitOrder(params)))
+//  .then(values => {
+//    console.log(values);
+//    return values;
+//  })
+//  .then(res => console.log(res))
+//  .catch(err => console.log(err.message));
+function cancelOrder(symbol, orderId, timestamp) {
+  const params = { symbol, orderId, timestamp: new Date().getTime() };
+  let res = makeSignature(params);
+  params.signature = res;
+  let qs = res.qs + "signature=" + res.signature;
+
+  return fetch(testingAPI + "/fapi/v1/order" + "?" + qs, {
+    method: "DELETE",
+    headers: {
+      "X-MBX-APIKEY": binanceAPI
+      //  "Content-Type": "application/json"
+    }
+  })
+    .then(res => {
+      return res.json();
+    })
+    .then(r => {
+      console.log("result", r);
+      return r;
+    })
+    .catch(err => console.log(err.message));
+}
+//cancelOrder("BTCUSDT", 2494859858);
+//cancelOrder("BTCUSDT", 2494643395, 1592221861750);

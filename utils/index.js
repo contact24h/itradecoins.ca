@@ -1,49 +1,44 @@
 const fetch = require("node-fetch");
 const crypto = require("crypto");
-const { symbol } = require("../parameters.js");
-const binanceAPI =
-  "600044b043eedb449917d9020724b9e9855297a93c7b6fb92f64704cae633a17";
-const binanceSecret =
-  "b0589308d947920a6a0eb66f13e992d234e5b9943edd9d1d364f8e8f2b4dbb87";
-const testingAPI = "https://testnet.binancefuture.com";
+const webSocket = require("ws");
+const {
+  symbol,
+  binanceAPI,
+  binanceSecret,
+  OrderAPI,
+  userStream
+} = require("../parameters.js");
+console.log(userStream);
 
 const transformRiskParameters = (price, riskParameters) => {
   if (!price || !riskParameters) {
     throw new Error("price and riskParameters are mandatory");
   }
   if (
+    !riskParameters.portfolio ||
     !riskParameters.riskPerTrade ||
-    !riskParameters.profitPerTrade ||
-    !riskParameters.trailForEach ||
-    !riskParameters.portfolio
+    !riskParameters.stopLossAmount ||
+    !riskParameters.takeProfitAmount ||
+    !riskParameters.trailForEach
   ) {
     throw new Error(
-      "riskperTrade, profitperTrade, trailForEach, portfolio are mandatory"
+      "portfolio,riskperTrade, stopLossAmount,takeProfitAmount, trailForEach are mandatory"
     );
   }
   const {
+    portfolio,
     riskPerTrade,
-    profitPerTrade,
-    trailForEach,
-    portfolio
+    stopLossAmount,
+    takeProfitAmount,
+    trailForEach
   } = riskParameters;
-  let r, p, t, q;
-  if (riskParameters.unit === "percentage") {
-    r = (Number(portfolio) * riskPerTrade) / 100;
-    p = (Number(portfolio) * profitPerTrade) / 100;
-    t = (Number(portfolio) * trailForEach) / 100;
-    q = r / price;
-  } else {
-    r = riskPerTrade;
-    p = profitPerTrade;
-    t = trailForEach;
-    q = riskPerTrade / price;
-  }
+  let r, q;
+  r = (Number(portfolio) * riskPerTrade) / 100;
+  q = r / stopLossAmount;
   return {
-    riskPerTrade: r,
-    profitPerTrade: p,
-    trailForEach: t,
-    quantity: q
+    quantity: q,
+    stopLossAmount,
+    takeProfitAmount
   };
 };
 
@@ -60,27 +55,14 @@ function makeSignature(obj) {
   return { qs: s, signature: res };
 }
 
-function placeOrder(side, price, quantity) {
-  let timestamp = new Date().getTime();
-  console.log(timestamp);
-  const params = {
-    symbol,
-    side,
-    type: "MARKET",
-    quantity: 1,
-    //timeInForce: "GTC",
-    //price: 9200,
-    //recvWindow: 500000,
-    timestamp: timestamp
-  };
-
+function placeOrder(params) {
   let res = makeSignature(params);
   params.signature = res;
   let qs = res.qs + "signature=" + res.signature;
   //console.log(qs);
 
   return (
-    fetch(testingAPI + "/fapi/v1/order" + "?" + qs, {
+    fetch(OrderAPI + "/fapi/v1/order" + "?" + qs, {
       method: "POST",
       headers: {
         "X-MBX-APIKEY": binanceAPI
@@ -96,4 +78,125 @@ function placeOrder(side, price, quantity) {
   );
 }
 
-module.exports = { transformRiskParameters, makeSignature, placeOrder };
+//get listen key
+function listenKey(s) {
+  let method = {
+    GET: "POST",
+    KEEPALIVE: "PUT",
+    DELETE: "DELETE"
+  };
+  let key = "";
+  return fetch(OrderAPI + "/fapi/v1/listenKey", {
+    method: method[s],
+    headers: {
+      "X-MBX-APIKEY": binanceAPI,
+      ContentType: "application/json"
+    },
+    body: JSON.stringify({})
+  })
+    .then(res => {
+      return res.json();
+    })
+    .catch(err => console.log(err.message));
+}
+
+function ListenKey(value) {
+  return (
+    listenKey(value)
+      //.then(res => console.log(res))
+      .catch(err => console.log(err.message))
+  );
+}
+//ListenKey("GET");
+
+function keepConnectionAlive() {
+  ListenKey("KEEPALIVE")
+    .then(() => {
+      setTimeout(() => {
+        console.log("keepalive sent");
+        keepConnectionAlive();
+      }, 45 * 60 * 1000);
+    })
+    .catch(err => {
+      console.log(err.message);
+    });
+}
+
+function createWebSocket(listenKey) {
+  const wsstream = new webSocket(`${userStream}${listenKey}`);
+  wsstream.on("open", () => {
+    console.log("websocket opened");
+  });
+  wsstream.on("error", err => {
+    console.log(err.message);
+  });
+  console.log("ws initiated", listenKey);
+  keepConnectionAlive();
+  return wsstream;
+}
+
+function startUserDataStream() {
+  return listenKey("GET")
+    .then(value => {
+      return createWebSocket(value.listenKey);
+    })
+    .catch(err => console.log(err.message));
+}
+
+function convertIntoOrderParams(
+  symbol,
+  side,
+  type,
+  price,
+  quantity,
+  stopPrice,
+  callbackRate
+) {
+  let timestamp = new Date().getTime();
+  let params = {
+    symbol,
+    side,
+    type,
+    quantity,
+    timestamp
+  };
+  if (type === "MARKET") {
+    return { ...params };
+  } else if (type === "STOP_MARKET") {
+    return { ...params, stopPrice };
+  } else if (type === "TAKE_PROFIT_MARKET") {
+    return { ...params, stopPrice };
+  }
+}
+function cancelOrder(symbol, orderId) {
+  const params = { symbol, orderId, timestamp: new Date().getTime() };
+  let res = makeSignature(params);
+  params.signature = res;
+  let qs = res.qs + "signature=" + res.signature;
+
+  return fetch(OrderAPI + "/fapi/v1/order" + "?" + qs, {
+    method: "DELETE",
+    headers: {
+      "X-MBX-APIKEY": binanceAPI
+      //  "Content-Type": "application/json"
+    }
+  })
+    .then(res => {
+      return res.json();
+    })
+    .then(r => {
+      console.log("result", r);
+      return r;
+    })
+    .catch(err => console.log(err.message));
+}
+module.exports = {
+  transformRiskParameters,
+  makeSignature,
+  placeOrder,
+  cancelOrder,
+  convertIntoOrderParams,
+  startUserDataStream,
+  listenKey,
+  ListenKey
+};
