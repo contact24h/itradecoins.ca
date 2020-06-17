@@ -32,9 +32,9 @@ class EmaSignalGeneratorClass extends SignalGenerator {
       );
     } else if (label === "price") {
       if (this.vwma && payload.p) {
-        if (this.vwma < Number(payload.p)) {
+        if (Number(payload.p) > this.vwma + 5) {
           this.signal = "BUY";
-        } else {
+        } else if (Number(payload.p) < this.vwma - 5) {
           this.signal = "SELL";
         }
       }

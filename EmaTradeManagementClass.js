@@ -7,15 +7,16 @@ class EmaTradeManagementClass extends TradeManagementClass {
     this.getData.on("newData", this.takeActionBasedOnSignal);
     this.getData.on("feedback", this.updateValuesBasedOnTradeExecution);
   }
-  sendDataToTradePlacement = (side, type, price, quantity) => {
+  sendDataToTradePlacement = data => {
+    const payload = data.map(d => ({
+      side: d.side,
+      type: d.type,
+      price: d.price,
+      quantity: d.quantity
+    }));
     this.connector.connection.emit("newData", {
       label: "placeTrade",
-      payload: {
-        side,
-        type,
-        price,
-        quantity
-      }
+      payload
     });
   };
   sendDataToTradeCancellation = which => {
@@ -48,6 +49,7 @@ class EmaTradeManagementClass extends TradeManagementClass {
         this.sendDataToTradeCancellation("all");
         console.log(`Action: Got out of position cancelled all the orders`);
         console.log("cooldown period started");
+        this.active = false;
       } else {
         //code not required as binance checks stop loss
         //and take profit.
@@ -61,7 +63,7 @@ class EmaTradeManagementClass extends TradeManagementClass {
         //  return;
         //}
       }
-    } else if (this.cooled) {
+    } else if (this.cooled && !this.active) {
       if (signal === "BUY") {
         this.active = true;
         const rp = transformRiskParameters(price, this.riskParameters);
@@ -74,24 +76,26 @@ class EmaTradeManagementClass extends TradeManagementClass {
         console.log(
           `Action: Buy ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
         );
-        this.sendDataToTradePlacement(
-          "BUY",
-          "ENTRY",
-          this.presentPrice,
-          this.quantity
-        );
-        this.sendDataToTradePlacement(
-          "SELL",
-          "STOP_MARKET",
-          this.stopLoss,
-          this.quantity
-        );
-        this.sendDataToTradePlacement(
-          "SELL",
-          "TAKE_PROFIT_MARKET",
-          this.takeProfit,
-          this.quantity
-        );
+        this.sendDataToTradePlacement([
+          {
+            side: "BUY",
+            type: "ENTRY",
+            price: this.presentPrice,
+            quantity: this.quantity
+          },
+          {
+            side: "SELL",
+            type: "STOP_MARKET",
+            price: this.stopLoss,
+            quantity: this.quantity
+          },
+          {
+            side: "SELL",
+            type: "TAKE_PROFIT_MARKET",
+            price: this.takeProfit,
+            quantity: this.quantity
+          }
+        ]);
         return;
       } else if (signal === "SELL") {
         this.active = true;
@@ -105,24 +109,26 @@ class EmaTradeManagementClass extends TradeManagementClass {
         console.log(
           `Action: Sell ${this.quantity} @${this.presentPrice}; stoploss: ${this.stopLoss} and takeProfit: ${this.takeProfit}`
         );
-        this.sendDataToTradePlacement(
-          "SELL",
-          "ENTRY",
-          this.presentPrice,
-          this.quantity
-        );
-        this.sendDataToTradePlacement(
-          "BUY",
-          "STOP_MARKET",
-          this.stopLoss,
-          this.quantity
-        );
-        this.sendDataToTradePlacement(
-          "BUY",
-          "TAKE_PROFIT_MARKET",
-          this.takeProfit,
-          this.quantity
-        );
+        this.sendDataToTradePlacement([
+          {
+            side: "SELL",
+            type: "ENTRY",
+            price: this.presentPrice,
+            quantity: this.quantity
+          },
+          {
+            side: "BUY",
+            type: "STOP_MARKET",
+            price: this.stopLoss,
+            quantity: this.quantity
+          },
+          {
+            side: "BUY",
+            type: "TAKE_PROFIT_MARKET",
+            price: this.takeProfit,
+            quantity: this.quantity
+          }
+        ]);
         return;
       } else {
         console.log("do nothing");
