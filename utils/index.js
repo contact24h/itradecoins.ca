@@ -169,6 +169,7 @@ function convertIntoOrderParams(
   }
 }
 function cancelOrder(symbol, orderId) {
+  console.log("cancel order id", orderId);
   const params = { symbol, orderId, timestamp: new Date().getTime() };
   let res = makeSignature(params);
   params.signature = res;

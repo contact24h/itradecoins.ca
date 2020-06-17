@@ -140,9 +140,9 @@ class EmaTradeManagementClass extends TradeManagementClass {
     //console.log("feedback received", data);
     if (data.payload[2] === "FILLED" || data.payload[3] === "FILLED") {
       if (data.payload[4] === "STOP_MARKET") {
-        this.sendDataToTradeCancellation(TAKE_PROFIT_MARKET);
+        this.sendDataToTradeCancellation("TAKE_PROFIT_MARKET");
       } else if (data.payload[4] === "TAKE_PROFIT_MARKET") {
-        this.sendDataToTradeCancellation(STOP_MARKET);
+        this.sendDataToTradeCancellation("STOP_MARKET");
       }
     }
   };
