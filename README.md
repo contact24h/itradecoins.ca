@@ -1,2 +1,2 @@
-# trading_crypto_jeseul
-a trading framework for implementing mutiple trading strategies.
+# itradecoins.ca
+Automated crypto trading bot  &amp; exchange revshare
