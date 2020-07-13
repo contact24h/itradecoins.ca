@@ -2,6 +2,7 @@ const { Connector } = require("./lib/ConnectorClass.js");
 const { DataPipeWebSocket, DataPipeREST } = require("./lib/DataPipeClass.js");
 const EmaSignalGeneratorClass = require("./EmaSignalGeneratorClass.js");
 const EmaTradeManagementClass = require("./EmaTradeManagementClass.js");
+const CustomSignalGeneratorClass = require("./CustomSignalGeneratorClass.js");
 const { TradeManagementClass } = require("./lib/TradeManagementClass.js");
 const { TradePlacementClass } = require("./lib/TradePlacementClass.js");
 const { Logger } = require("./lib/LoggerClass.js");
@@ -17,14 +18,15 @@ const {
   binanceSecret,
   subscription1,
   subscription2,
-  riskParameters
+  riskParameters,
 } = require("./parameters.js");
 //create data streams
 const wp = new DataPipeWebSocket(binanceWebsocketURL);
 wp.subscribe(subscription1);
 const rp = new DataPipeREST(binanceRESTEndPoint);
 //create SignalGenerators
-const sg = new EmaSignalGeneratorClass();
+//const sg = new EmaSignalGeneratorClass();
+const sg = new CustomSignalGeneratorClass();
 //create TradeManagement
 const tm = new EmaTradeManagementClass(riskParameters);
 //create TradePlacement
@@ -48,7 +50,7 @@ TradePlacementToLogger.connectTarget(lg);
 TradePlacementToTradeManagement.connectFeedbackTarget(tm);
 
 //connect connectors to Sources
-wp.addConnector(dataToSignalConnector);
+//wp.addConnector(dataToSignalConnector);
 rp.addConnector(dataToSignalConnector);
 sg.addConnector(SignalGeneratorToTradeManagement);
 tm.addConnector(TradeMangementToTradePlacement);
