@@ -20,22 +20,22 @@ const userStream = "wss://stream.binancefuture.com/ws/";
 const subscription1 = {
   method: "SUBSCRIBE",
   params: ["btcusdt@aggTrade"],
-  id: 1
+  id: 1,
 };
 const subscription2 = {
   method: "SUBSCRIBE",
   params: ["btcusdt@kline_1m"],
-  id: 2
+  id: 2,
 };
 
 //trade Mangement
 const riskParameters = {
   unit: "normal",
-  portfolio: 1000,
+  portfolio: 10000,
   riskPerTrade: 1, //percent per portfolio to be risked
-  stopLossAmount: 25, //in dollars risk per trade
-  takeProfitAmount: 50, //in dollars profit per trade
-  trailForEach: 0.5 //  to be implemented.percent increase in price and
+  stopLossAmount: 50, //in dollars risk per trade
+  takeProfitAmount: 500, //in dollars profit per trade
+  trailForEach: 0.5, //  to be implemented.percent increase in price and
 };
 
 //Logger
@@ -53,5 +53,5 @@ module.exports = {
   subscription2,
   riskParameters,
   userStream,
-  OrderAPI
+  OrderAPI,
 };

@@ -3,6 +3,7 @@ const { DataPipeWebSocket, DataPipeREST } = require("./lib/DataPipeClass.js");
 const EmaSignalGeneratorClass = require("./EmaSignalGeneratorClass.js");
 const EmaTradeManagementClass = require("./EmaTradeManagementClass.js");
 const CustomSignalGeneratorClass = require("./CustomSignalGeneratorClass.js");
+const CustomTradeManagementClass = require("./CustomTradeManagementClass.js");
 const { TradeManagementClass } = require("./lib/TradeManagementClass.js");
 const { TradePlacementClass } = require("./lib/TradePlacementClass.js");
 const { Logger } = require("./lib/LoggerClass.js");
@@ -28,7 +29,8 @@ const rp = new DataPipeREST(binanceRESTEndPoint);
 //const sg = new EmaSignalGeneratorClass();
 const sg = new CustomSignalGeneratorClass();
 //create TradeManagement
-const tm = new EmaTradeManagementClass(riskParameters);
+//const tm = new EmaTradeManagementClass(riskParameters);
+const tm = new CustomTradeManagementClass(riskParameters);
 //create TradePlacement
 const tp = new TradePlacementClass();
 //create Logger
@@ -58,4 +60,6 @@ tp.addConnector(TradePlacementToLogger);
 tp.addFeedbackConnector(TradePlacementToTradeManagement);
 
 //starting "1m historical data"
-rp.repeatGetKlinesAndStreamtoConnectorForEachInterval("1m", "BTCUSDT");
+setTimeout(() => {
+  rp.repeatGetKlinesAndStreamtoConnectorForEachInterval("1m", "BTCUSDT");
+}, 5000);

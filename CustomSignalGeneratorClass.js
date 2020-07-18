@@ -14,12 +14,22 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     this.slowMacd = 12;
     this.fastMacd = 26;
     this.macdLength = 10;
-
     this.lastDataTime = "";
     this.confidence = 0.01;
     this.hma = {};
     this.ichimokuResults = {};
     this.macd = {};
+
+    //only to test.
+    //this.temp = "SELL";
+    //setTimeout(() => {
+    //  this.connector.connection.emit("newData", {
+    //    label: "signal",
+    //    payload: {
+    //      signal: this.temp,
+    //    },
+    //  });
+    //}, 20000);
   }
 
   ichimokuCalculation = (data) => {
@@ -121,16 +131,13 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd > this.macd.aMacd
       ) {
         this.signal = "BUY";
-        //this.connector.connection.emit("newData", {
-        //  label: "signal",
-        //  payload: {
-        //    signal: this.signal,
-        //    hma: this.hma,
-        //    confidence: this.confidence,
-        //	ichimokuResults : this.ichimokuResults,
-        //	macd:this.macd
-        //  },
-        //});
+        this.printDetails();
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: this.signal,
+          },
+        });
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.confidence < 0 &&
@@ -140,27 +147,45 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd < this.macd.aMacd
       ) {
         this.signal = "SELL";
-        //this.connector.connection.emit("newData", {
-        //  label: "signal",
-        //  payload: {
-        //    signal: this.signal,
-        //    hma: this.hma,
-        //    confidence: this.confidence,
-        //	ichimokuResults : this.ichimokuResults,
-        //	macd:this.macd
-        //  },
-        //});
+        this.printDetails();
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: this.signal,
+          },
+        });
+      } else if (
+        this.hma.n1 < this.hma.n2 &&
+        this.close < this.hma.n2 &&
+        this.confidence < 0
+      ) {
+        this.signal = "EXIT_BUY";
+        this.printDetails();
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: this.signal,
+          },
+        });
+      } else if (
+        this.hma.n1 > this.hma.n2 &&
+        this.close > this.hma.n2 &&
+        this.confidence > 0
+      ) {
+        this.signal = "EXIT_SELL";
+        this.printDetails();
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: this.signal,
+          },
+        });
+      } else {
+        //do nothing.
       }
     }
-    //else if (label === "price") {
-    //  if (this.vwma && payload.p) {
-    //    if (Number(payload.p) > this.vwma + 5) {
-    //      this.signal = "BUY";
-    //    } else if (Number(payload.p) < this.vwma - 5) {
-    //      this.signal = "SELL";
-    //    }
-    //  }
-    //}
+  };
+  printDetails = () => {
     console.log(
       "\n-----------------------------------------------------------"
     );
@@ -170,27 +195,10 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     console.log(`Confidence: `, this.confidence);
     console.log(`IchimokuResults: `, this.ichimokuResults);
     console.log("Macd: ", this.macd);
+    console.log("SIGNAL", this.signal);
     console.log(
       "\n-----------------------------------------------------------"
     );
-
-    //try {
-    //  if (this.signal && this.vwma && this.updatedData.price.p) {
-    //    //console.log("hehe", Object.keys(this.connector));
-    //    this.connector.connection.emit("newData", {
-    //      label: "signal",
-    //      payload: {
-    //        signal: this.signal,
-    //        vwma: this.vwma,
-    //        price: this.updatedData.price
-    //          ? Number(this.updatedData.price.p)
-    //          : null,
-    //      },
-    //    });
-    //  }
-    //} catch (err) {
-    //  //console.log(err.message);
-    //}
   };
 }
 

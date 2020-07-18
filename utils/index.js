@@ -6,13 +6,13 @@ const {
   binanceAPI,
   binanceSecret,
   OrderAPI,
-  userStream
+  userStream,
 } = require("../parameters.js");
-console.log(userStream);
+console.log("hi", userStream);
 
-const transformRiskParameters = (price, riskParameters) => {
-  if (!price || !riskParameters) {
-    throw new Error("price and riskParameters are mandatory");
+const transformRiskParameters = (riskParameters) => {
+  if (!riskParameters) {
+    throw new Error("riskParameters are mandatory");
   }
   if (
     !riskParameters.portfolio ||
@@ -30,25 +30,48 @@ const transformRiskParameters = (price, riskParameters) => {
     riskPerTrade,
     stopLossAmount,
     takeProfitAmount,
-    trailForEach
+    trailForEach,
   } = riskParameters;
   let r, q;
-  r = (Number(portfolio) * riskPerTrade) / 100;
+  r = (portfolio * riskPerTrade) / 100;
   q = r / stopLossAmount;
   return {
     quantity: q,
     stopLossAmount,
-    takeProfitAmount
+    takeProfitAmount,
+  };
+};
+
+const transformRiskParameters1 = (riskParameters) => {
+  if (!riskParameters) {
+    throw new Error("price and riskParameters are mandatory");
+  }
+  if (
+    !riskParameters.quantity ||
+    !riskParameters.riskPerTrade ||
+    !riskParameters.profitPerTrade
+  ) {
+    throw new Error("quantity,riskperTrade, profitPerTrade are mandatory");
+  }
+  const { quantity, riskPerTrade, profitPerTrade } = riskParameters;
+  let r, q;
+  stopLossAmount = Number(riskPerTrade) / Number(quantity);
+  takeProfitAmount = Number(profitPerTrade) / Number(quantity);
+  q = r / stopLossAmount;
+  return {
+    quantity,
+    stopLossAmount,
+    takeProfitAmount,
   };
 };
 
 function makeSignature(obj) {
   let s = "",
     res;
-  Object.keys(obj).forEach(e => {
+  Object.keys(obj).forEach((e) => {
     s = s + e + "=" + obj[e] + "&";
   });
-  console.log(s.slice(0, s.length - 1));
+  //console.log(s.slice(0, s.length - 1));
   const hmac = crypto.createHmac("sha256", binanceSecret);
   hmac.update(s.slice(0, s.length - 1));
   res = hmac.digest("hex");
@@ -57,7 +80,7 @@ function makeSignature(obj) {
 
 function placeOrder(params) {
   let res = makeSignature(params);
-  params.signature = res;
+  //params.signature = res;
   let qs = res.qs + "signature=" + res.signature;
   //console.log(qs);
 
@@ -65,16 +88,16 @@ function placeOrder(params) {
     fetch(OrderAPI + "/fapi/v1/order" + "?" + qs, {
       method: "POST",
       headers: {
-        "X-MBX-APIKEY": binanceAPI
+        "X-MBX-APIKEY": binanceAPI,
         //  "Content-Type": "application/json"
-      }
+      },
     })
-      .then(res => {
+      .then((res) => {
         //console.log(res);
         return res.json();
       })
-      //.then(r => console.log(r))
-      .catch(err => console.log(err.message))
+      //.then((r) => console.log(r))
+      .catch((err) => console.log(err.message))
   );
 }
 
@@ -83,28 +106,28 @@ function listenKey(s) {
   let method = {
     GET: "POST",
     KEEPALIVE: "PUT",
-    DELETE: "DELETE"
+    DELETE: "DELETE",
   };
   let key = "";
   return fetch(OrderAPI + "/fapi/v1/listenKey", {
     method: method[s],
     headers: {
       "X-MBX-APIKEY": binanceAPI,
-      ContentType: "application/json"
+      ContentType: "application/json",
     },
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
   })
-    .then(res => {
+    .then((res) => {
       return res.json();
     })
-    .catch(err => console.log(err.message));
+    .catch((err) => console.log(err.message));
 }
 
 function ListenKey(value) {
   return (
     listenKey(value)
       //.then(res => console.log(res))
-      .catch(err => console.log(err.message))
+      .catch((err) => console.log(err.message))
   );
 }
 //ListenKey("GET");
@@ -117,30 +140,43 @@ function keepConnectionAlive() {
         keepConnectionAlive();
       }, 45 * 60 * 1000);
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err.message);
     });
 }
 
 function createWebSocket(listenKey) {
   const wsstream = new webSocket(`${userStream}${listenKey}`);
+  console.log("websocket initiated");
   wsstream.on("open", () => {
     console.log("websocket opened");
   });
-  wsstream.on("error", err => {
+  wsstream.on("error", (err) => {
     console.log(err.message);
   });
-  console.log("ws initiated", listenKey);
   keepConnectionAlive();
   return wsstream;
 }
 
+//function createWebSocket(listenKey) {
+//  const wsstream = new webSocket(`${userStream}${listenKey}`);
+//  wsstream.on("open", () => {
+//    console.log("websocket opened");
+//  });
+//  wsstream.on("error", (err) => {
+//    console.log(err.message);
+//  });
+//  console.log("ws initiated", listenKey);
+//  keepConnectionAlive();
+//  return wsstream;
+//}
+
 function startUserDataStream() {
   return listenKey("GET")
-    .then(value => {
+    .then((value) => {
       return createWebSocket(value.listenKey);
     })
-    .catch(err => console.log(err.message));
+    .catch((err) => console.log(err.message));
 }
 
 function convertIntoOrderParams(
@@ -158,7 +194,7 @@ function convertIntoOrderParams(
     side,
     type,
     quantity,
-    timestamp
+    timestamp,
   };
   if (type === "MARKET") {
     return { ...params };
@@ -178,19 +214,20 @@ function cancelOrder(symbol, orderId) {
   return fetch(OrderAPI + "/fapi/v1/order" + "?" + qs, {
     method: "DELETE",
     headers: {
-      "X-MBX-APIKEY": binanceAPI
+      "X-MBX-APIKEY": binanceAPI,
       //  "Content-Type": "application/json"
-    }
+    },
   })
-    .then(res => {
+    .then((res) => {
       return res.json();
     })
-    .then(r => {
-      //console.log("result", r);
+    .then((r) => {
+      console.log("result", r);
       return r;
     })
-    .catch(err => console.log(err.message));
+    .catch((err) => console.log(err.message));
 }
+//cancelOrder("BTCUSDT", 2514192583);
 module.exports = {
   transformRiskParameters,
   makeSignature,
@@ -199,5 +236,5 @@ module.exports = {
   convertIntoOrderParams,
   startUserDataStream,
   listenKey,
-  ListenKey
+  ListenKey,
 };
