@@ -8,7 +8,14 @@ const {
   OrderAPI,
   userStream,
 } = require("../parameters.js");
-console.log("hi", userStream);
+console.log("user stream api: ", userStream);
+
+//calulcates the risk parameters of the trading strategy based
+//portfolio amount in $,
+//riskPerTrade in % of portfolio amount,
+//stopLossAmount amount to risk per 1btc is usd
+//takeProfitAmount amount to risk per 1 btc in usd
+//trailForEach to be implemented.
 
 const transformRiskParameters = (riskParameters) => {
   if (!riskParameters) {
@@ -42,29 +49,8 @@ const transformRiskParameters = (riskParameters) => {
   };
 };
 
-const transformRiskParameters1 = (riskParameters) => {
-  if (!riskParameters) {
-    throw new Error("price and riskParameters are mandatory");
-  }
-  if (
-    !riskParameters.quantity ||
-    !riskParameters.riskPerTrade ||
-    !riskParameters.profitPerTrade
-  ) {
-    throw new Error("quantity,riskperTrade, profitPerTrade are mandatory");
-  }
-  const { quantity, riskPerTrade, profitPerTrade } = riskParameters;
-  let r, q;
-  stopLossAmount = Number(riskPerTrade) / Number(quantity);
-  takeProfitAmount = Number(profitPerTrade) / Number(quantity);
-  q = r / stopLossAmount;
-  return {
-    quantity,
-    stopLossAmount,
-    takeProfitAmount,
-  };
-};
-
+//creates signature from binanceSecret used
+//to sign the api requests so that the exchange can identify us.
 function makeSignature(obj) {
   let s = "",
     res;
@@ -101,7 +87,12 @@ function placeOrder(params) {
   );
 }
 
-//get listen key
+//gets the listen key, listen key is used to listen
+//to the user data streams.which takes an input of method
+//if we use "POST", we ask the exchange for new listenkey
+//if we use "KEEPALIVE", we extend the lifetime of the
+//exchange key by one hour. so we need to keep on calling
+//"KEEPALIVE"
 function listenKey(s) {
   let method = {
     GET: "POST",
@@ -123,6 +114,8 @@ function listenKey(s) {
     .catch((err) => console.log(err.message));
 }
 
+//a wrapper function for listen key makes it
+//easier to chain.
 function ListenKey(value) {
   return (
     listenKey(value)
@@ -130,8 +123,10 @@ function ListenKey(value) {
       .catch((err) => console.log(err.message))
   );
 }
-//ListenKey("GET");
 
+//Logic to call the exchange for every 45mins
+//actually the default is 1hr for our safety
+//i have decreased this to 45mins
 function keepConnectionAlive() {
   ListenKey("KEEPALIVE")
     .then(() => {
@@ -145,6 +140,8 @@ function keepConnectionAlive() {
     });
 }
 
+//creates web socket connection using listen key
+//and initiates the keep connection alive logic
 function createWebSocket(listenKey) {
   const wsstream = new webSocket(`${userStream}${listenKey}`);
   console.log("websocket initiated");
@@ -171,6 +168,9 @@ function createWebSocket(listenKey) {
 //  return wsstream;
 //}
 
+//combines all the above, gets the listen key,
+//creates web socket and attaches listeners to it,
+//initiates the keep alive logic
 function startUserDataStream() {
   return listenKey("GET")
     .then((value) => {
@@ -179,6 +179,8 @@ function startUserDataStream() {
     .catch((err) => console.log(err.message));
 }
 
+//converst the incomming data into the parameters
+//acceptable by the exchange.
 function convertIntoOrderParams(
   symbol,
   side,
@@ -204,8 +206,10 @@ function convertIntoOrderParams(
     return { ...params, stopPrice };
   }
 }
+
+//take in order id and symbol and cancels the order.
 function cancelOrder(symbol, orderId) {
-  console.log("cancel order id", orderId);
+  //console.log("cancel order id", orderId);
   const params = { symbol, orderId, timestamp: new Date().getTime() };
   let res = makeSignature(params);
   params.signature = res;
@@ -222,12 +226,13 @@ function cancelOrder(symbol, orderId) {
       return res.json();
     })
     .then((r) => {
-      console.log("result", r);
+      //console.log("result", r);
       return r;
     })
     .catch((err) => console.log(err.message));
 }
-//cancelOrder("BTCUSDT", 2514192583);
+
+//exports
 module.exports = {
   transformRiskParameters,
   makeSignature,
