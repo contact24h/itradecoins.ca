@@ -1,14 +1,14 @@
 const fetch = require("node-fetch");
 const crypto = require("crypto");
 const webSocket = require("ws");
-const {
-  symbol,
-  binanceAPI,
-  binanceSecret,
-  OrderAPI,
-  userStream,
-} = require("../parameters.js");
-console.log("user stream api: ", userStream);
+//const {
+//  symbol,
+//  binanceAPI,
+//  binanceSecret,
+//  OrderAPI,
+//  userStream,
+//} = require("../parameters.js");
+//console.log("user stream api: ", userStream);
 
 //calulcates the risk parameters of the trading strategy based
 //portfolio amount in $,
@@ -16,7 +16,6 @@ console.log("user stream api: ", userStream);
 //stopLossAmount amount to risk per 1btc is usd
 //takeProfitAmount amount to risk per 1 btc in usd
 //trailForEach to be implemented.
-
 const transformRiskParameters = (riskParameters) => {
   if (!riskParameters) {
     throw new Error("riskParameters are mandatory");
@@ -51,7 +50,8 @@ const transformRiskParameters = (riskParameters) => {
 
 //creates signature from binanceSecret used
 //to sign the api requests so that the exchange can identify us.
-function makeSignature(obj) {
+function makeSignature(obj, binanceSecret) {
+  console.log("makeSignature", obj, binanceSecret);
   let s = "",
     res;
   Object.keys(obj).forEach((e) => {
@@ -64,27 +64,26 @@ function makeSignature(obj) {
   return { qs: s, signature: res };
 }
 
-function placeOrder(params) {
-  let res = makeSignature(params);
+function placeOrder(params, OrderAPI, binanceSecret, binanceAPI) {
+  console.log("placeOrder", params, OrderAPI, binanceSecret, binanceAPI);
+  let res = makeSignature(params, binanceSecret);
   //params.signature = res;
   let qs = res.qs + "signature=" + res.signature;
   //console.log(qs);
 
-  return (
-    fetch(OrderAPI + "/fapi/v1/order" + "?" + qs, {
-      method: "POST",
-      headers: {
-        "X-MBX-APIKEY": binanceAPI,
-        //  "Content-Type": "application/json"
-      },
+  return fetch(OrderAPI + "/fapi/v1/order" + "?" + qs, {
+    method: "POST",
+    headers: {
+      "X-MBX-APIKEY": binanceAPI,
+      //  "Content-Type": "application/json"
+    },
+  })
+    .then((res) => {
+      //console.log(res);
+      return res.json();
     })
-      .then((res) => {
-        //console.log(res);
-        return res.json();
-      })
-      //.then((r) => console.log(r))
-      .catch((err) => console.log(err.message))
-  );
+    .then((r) => console.log(r))
+    .catch((err) => console.log(err.message));
 }
 
 //gets the listen key, listen key is used to listen
@@ -93,7 +92,8 @@ function placeOrder(params) {
 //if we use "KEEPALIVE", we extend the lifetime of the
 //exchange key by one hour. so we need to keep on calling
 //"KEEPALIVE"
-function listenKey(s) {
+function listenKey(s, OrderAPI, binanceAPI) {
+  console.log("listenKey", OrderAPI, binanceAPI);
   let method = {
     GET: "POST",
     KEEPALIVE: "PUT",
@@ -116,9 +116,11 @@ function listenKey(s) {
 
 //a wrapper function for listen key makes it
 //easier to chain.
-function ListenKey(value) {
+
+function ListenKey(value, OrderAPI, binanceAPI) {
+  console.log("ListenKey", value, OrderAPI, binanceAPI);
   return (
-    listenKey(value)
+    listenKey(value, OrderAPI, binanceAPI)
       //.then(res => console.log(res))
       .catch((err) => console.log(err.message))
   );
@@ -127,12 +129,13 @@ function ListenKey(value) {
 //Logic to call the exchange for every 45mins
 //actually the default is 1hr for our safety
 //i have decreased this to 45mins
-function keepConnectionAlive() {
-  ListenKey("KEEPALIVE")
+function keepConnectionAlive(OrderAPI, binanceAPI) {
+  console.log("keepConnectionAlive", OrderAPI, binanceAPI);
+  ListenKey("KEEPALIVE", OrderAPI, binanceAPI)
     .then(() => {
       setTimeout(() => {
         console.log("keepalive sent");
-        keepConnectionAlive();
+        keepConnectionAlive(OrderAPI, binanceAPI);
       }, 45 * 60 * 1000);
     })
     .catch((err) => {
@@ -142,7 +145,8 @@ function keepConnectionAlive() {
 
 //creates web socket connection using listen key
 //and initiates the keep connection alive logic
-function createWebSocket(listenKey) {
+function createWebSocket(listenKey, userStream, OrderAPI, binanceAPI) {
+  console.log("createWebSocket", listenKey, userStream, OrderAPI, binanceAPI);
   const wsstream = new webSocket(`${userStream}${listenKey}`);
   console.log("websocket initiated");
   wsstream.on("open", () => {
@@ -151,7 +155,7 @@ function createWebSocket(listenKey) {
   wsstream.on("error", (err) => {
     console.log(err.message);
   });
-  keepConnectionAlive();
+  keepConnectionAlive(OrderAPI, binanceAPI);
   return wsstream;
 }
 
@@ -171,10 +175,11 @@ function createWebSocket(listenKey) {
 //combines all the above, gets the listen key,
 //creates web socket and attaches listeners to it,
 //initiates the keep alive logic
-function startUserDataStream() {
-  return listenKey("GET")
+function startUserDataStream(userStream, OrderAPI, binanceAPI) {
+  console.log("startUserDataStream", userStream, OrderAPI, binanceAPI);
+  return listenKey("GET", OrderAPI, binanceAPI)
     .then((value) => {
-      return createWebSocket(value.listenKey);
+      return createWebSocket(value.listenKey, userStream, OrderAPI, binanceAPI);
     })
     .catch((err) => console.log(err.message));
 }
@@ -208,10 +213,10 @@ function convertIntoOrderParams(
 }
 
 //take in order id and symbol and cancels the order.
-function cancelOrder(symbol, orderId) {
-  //console.log("cancel order id", orderId);
+function cancelOrder(symbol, orderId, OrderAPI, binanceSecret, binanceAPI) {
+  console.log("cancelOrder", orderId, OrderAPI, binanceSecret, binanceAPI);
   const params = { symbol, orderId, timestamp: new Date().getTime() };
-  let res = makeSignature(params);
+  let res = makeSignature(params, binanceSecret);
   params.signature = res;
   let qs = res.qs + "signature=" + res.signature;
 
