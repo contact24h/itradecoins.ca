@@ -1,4 +1,4 @@
-const { transformRiskParameters } = require("./utils/index.js");
+const { transformRiskParameters } = require("../../utils/index.js");
 //parameter for the trading strategy
 const symbol = "BTCUSDT";
 const tradingStrategyName = "";
@@ -32,9 +32,9 @@ const subscription2 = {
 const riskParameters = {
   unit: "normal",
   portfolio: 10000,
-  riskPerTrade: 1, //percent per portfolio to be risked
-  stopLossAmount: 50, //in dollars risk per trade
-  takeProfitAmount: 1000, //in dollars profit per trade
+  riskPerTrade: 0.5, //percent per portfolio to be risked
+  stopLossAmount: 2000, //in dollars risk per trade
+  takeProfitAmount: 2000, //in dollars profit per trade
   trailForEach: 0.5, //  to be implemented.percent increase in price and
 };
 

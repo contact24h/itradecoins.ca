@@ -1,9 +1,9 @@
-const { transformRiskParameters } = require("./utils/index.js");
-const { TradeManagementClass } = require("./lib/TradeManagementClass.js");
+const { transformRiskParameters } = require("../../utils/index.js");
+const { TradeManagementClass } = require("../../lib/TradeManagementClass.js");
 
 class CustomTradeManagementClass extends TradeManagementClass {
-  constructor(riskParameters) {
-    super(riskParameters);
+  constructor(riskParameters, filepath) {
+    super(riskParameters, filepath);
     this.getData.on("newData", this.takeActionBasedOnSignal);
     this.getData.on("feedback", this.updateValuesBasedOnTradeExecution);
     this.EntryTrade = {};
@@ -40,6 +40,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
   takeActionBasedOnSignal = (data) => {
     console.log("trademanagement", data);
     const { signal } = data.payload;
+    //this.Logger.connection.emit("newData", data);
 
     if (this.active) {
       if (this.direction !== signal) {
@@ -102,6 +103,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
   };
   updateValuesBasedOnTradeExecution = (data) => {
     console.log("feedback received", data);
+    this.sendDataToLogger(data);
     //to place stop_loss and take_profit orders one by one.
     //updating Entry,stoploss and exit trades trades
     if (!this.gettingOutOfPreviousTrade) {

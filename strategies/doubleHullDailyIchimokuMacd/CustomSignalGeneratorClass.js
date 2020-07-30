@@ -1,4 +1,4 @@
-const { SignalGenerator } = require("./lib/SignalGeneratorClass.js");
+const { SignalGenerator } = require("../../lib/SignalGeneratorClass.js");
 const tulind = require("tulind");
 
 class CustomSignalGeneratorClass extends SignalGenerator {
@@ -21,15 +21,15 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     this.macd = {};
 
     //only to test.
-    //this.temp = "SELL";
-    //setTimeout(() => {
-    //  this.connector.connection.emit("newData", {
-    //    label: "signal",
-    //    payload: {
-    //      signal: this.temp,
-    //    },
-    //  });
-    //}, 20000);
+    this.temp = "SELL";
+    setTimeout(() => {
+      this.connector.connection.emit("newData", {
+        label: "signal",
+        payload: {
+          signal: this.temp,
+        },
+      });
+    }, 20000);
   }
 
   ichimokuCalculation = (data) => {
@@ -132,12 +132,12 @@ class CustomSignalGeneratorClass extends SignalGenerator {
       ) {
         this.signal = "BUY";
         this.printDetails();
-        this.connector.connection.emit("newData", {
-          label: "signal",
-          payload: {
-            signal: this.signal,
-          },
-        });
+        //this.connector.connection.emit("newData", {
+        //  label: "signal",
+        //  payload: {
+        //    signal: this.signal,
+        //  },
+        //});
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.confidence < 0 &&
@@ -148,12 +148,12 @@ class CustomSignalGeneratorClass extends SignalGenerator {
       ) {
         this.signal = "SELL";
         this.printDetails();
-        this.connector.connection.emit("newData", {
-          label: "signal",
-          payload: {
-            signal: this.signal,
-          },
-        });
+        //this.connector.connection.emit("newData", {
+        //  label: "signal",
+        //  payload: {
+        //    signal: this.signal,
+        //  },
+        //});
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.close < this.hma.n2 &&
