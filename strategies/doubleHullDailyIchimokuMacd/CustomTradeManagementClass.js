@@ -103,7 +103,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
   };
   updateValuesBasedOnTradeExecution = (data) => {
     console.log("feedback received", data);
-    this.sendDataToLogger(data);
+    this.sendDataToLogger(data.payload.join(",") + ";");
     //to place stop_loss and take_profit orders one by one.
     //updating Entry,stoploss and exit trades trades
     if (!this.gettingOutOfPreviousTrade) {
