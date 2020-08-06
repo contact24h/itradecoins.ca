@@ -21,16 +21,16 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     this.macd = {};
 
     //only to test.
-    //this.temp = "SELL";
-    //setInterval(() => {
-    //  this.temp = this.temp === "SELL" ? "BUY" : "SELL";
-    //  this.connector.connection.emit("newData", {
-    //    label: "signal",
-    //    payload: {
-    //      signal: this.temp,
-    //    },
-    //  });
-    //}, 30000);
+    this.temp = "SELL";
+    setInterval(() => {
+      this.temp = this.temp === "SELL" ? "BUY" : "SELL";
+      this.connector.connection.emit("newData", {
+        label: "signal",
+        payload: {
+          signal: this.temp,
+        },
+      });
+    }, 30000);
   }
 
   ichimokuCalculation = (data) => {
@@ -131,14 +131,14 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.open < this.close &&
         this.macd.macd > this.macd.aMacd
       ) {
-        this.signal = "BUY";
-        this.printDetails();
-        this.connector.connection.emit("newData", {
-          label: "signal",
-          payload: {
-            signal: this.signal,
-          },
-        });
+        //this.signal = "BUY";
+        //this.printDetails();
+        //this.connector.connection.emit("newData", {
+        //  label: "signal",
+        //  payload: {
+        //    signal: this.signal,
+        //  },
+        //});
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.confidence < 0 &&
@@ -147,14 +147,14 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.open > this.close &&
         this.macd.macd < this.macd.aMacd
       ) {
-        this.signal = "SELL";
-        this.printDetails();
-        this.connector.connection.emit("newData", {
-          label: "signal",
-          payload: {
-            signal: this.signal,
-          },
-        });
+        //this.signal = "SELL";
+        //this.printDetails();
+        //this.connector.connection.emit("newData", {
+        //  label: "signal",
+        //  payload: {
+        //    signal: this.signal,
+        //  },
+        //});
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.close < this.hma.n2 &&
