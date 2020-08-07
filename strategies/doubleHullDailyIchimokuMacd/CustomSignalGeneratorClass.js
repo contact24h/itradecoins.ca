@@ -2,8 +2,8 @@ const { SignalGenerator } = require("../../lib/SignalGeneratorClass.js");
 const tulind = require("tulind");
 
 class CustomSignalGeneratorClass extends SignalGenerator {
-  constructor() {
-    super();
+  constructor(intervals) {
+    super(intervals);
     this.getData.on("newData", this.generateSignal);
     this.updatedData = {};
     this.keh = 16;
@@ -21,16 +21,16 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     this.macd = {};
 
     //only to test.
-    this.temp = "SELL";
-    setInterval(() => {
-      this.temp = this.temp === "SELL" ? "BUY" : "SELL";
-      this.connector.connection.emit("newData", {
-        label: "signal",
-        payload: {
-          signal: this.temp,
-        },
-      });
-    }, 30000);
+    //this.temp = "SELL";
+    //setInterval(() => {
+    //  this.temp = this.temp === "SELL" ? "BUY" : "SELL";
+    //  this.connector.connection.emit("newData", {
+    //    label: "signal",
+    //    payload: {
+    //      signal: this.temp,
+    //    },
+    //  });
+    //}, 30000);
   }
 
   ichimokuCalculation = (data) => {
@@ -72,11 +72,15 @@ class CustomSignalGeneratorClass extends SignalGenerator {
 
   generateSignal = ({ label, payload }) => {
     //for undefined error in label
+    //console.log("custom signal", this.intervals);
     if (label !== undefined) {
       this.updatedData[label] = payload;
     }
-    if (label === "klines1m") {
-      let temp = this.updatedData.klines1m.slice(450);
+    if (label === "klines" + this.intervals[0]) {
+      //console.log("updated data",Object.keys(this.updatedData))
+      //console.log("parameter",this.updatedData["klines"+this.intervals[0]].length)
+      let temp = this.updatedData["klines" + this.intervals[0]].slice(450);
+      //console.log("temp",temp.length)
       let close = temp.map((e) => Number(e[4]));
       let volume = temp.map((e) => Number(e[5]));
 
@@ -99,7 +103,7 @@ class CustomSignalGeneratorClass extends SignalGenerator {
 
       //calculation of ichimoku
       this.ichimokuResults = this.ichimokuCalculation(
-        this.updatedData.klines1m.slice(430)
+        this.updatedData["klines" + this.intervals[0]].slice(430)
       );
 
       //calculation of macd
@@ -131,14 +135,15 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.open < this.close &&
         this.macd.macd > this.macd.aMacd
       ) {
-        //this.signal = "BUY";
-        //this.printDetails();
-        //this.connector.connection.emit("newData", {
-        //  label: "signal",
-        //  payload: {
-        //    signal: this.signal,
-        //  },
-        //});
+        this.signal = "BUY";
+        this.printDetails();
+        this.printSignal(true);
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: this.signal,
+          },
+        });
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.confidence < 0 &&
@@ -147,14 +152,15 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.open > this.close &&
         this.macd.macd < this.macd.aMacd
       ) {
-        //this.signal = "SELL";
-        //this.printDetails();
-        //this.connector.connection.emit("newData", {
-        //  label: "signal",
-        //  payload: {
-        //    signal: this.signal,
-        //  },
-        //});
+        this.signal = "SELL";
+        this.printDetails();
+        this.printSignal(true);
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: this.signal,
+          },
+        });
       } else if (
         this.hma.n1 < this.hma.n2 &&
         this.close < this.hma.n2 &&
@@ -185,6 +191,8 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         //});
       } else {
         //do nothing.
+        this.printDetails();
+        this.printSignal(false);
       }
     }
   };
@@ -198,7 +206,13 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     console.log(`Confidence: `, this.confidence);
     console.log(`IchimokuResults: `, this.ichimokuResults);
     console.log("Macd: ", this.macd);
-    console.log("SIGNAL", this.signal);
+  };
+  printSignal = (hasSignal) => {
+    if (hasSignal) {
+      console.log("SIGNAL", this.signal);
+    } else {
+      console.log("SIGNAL", "NONE");
+    }
     console.log(
       "\n-----------------------------------------------------------"
     );

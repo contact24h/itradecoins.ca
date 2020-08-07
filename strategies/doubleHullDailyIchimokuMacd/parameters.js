@@ -29,6 +29,7 @@ const subscription2 = {
   params: ["btcusdt@kline_1m"],
   id: 2,
 };
+intervals = ["1m"];
 
 //trade Management
 const riskParameters = {
@@ -56,4 +57,5 @@ module.exports = {
   riskParameters,
   userStream,
   OrderAPI,
+  intervals,
 };
