@@ -85,6 +85,7 @@ class CustomSignalGeneratorClass extends SignalGenerator {
       //console.log("updated data",Object.keys(this.updatedData))
       //console.log("parameter",this.updatedData["klines"+this.intervals[0]].length)
       let temp = this.updatedData["klines" + this.intervals[0]].slice(450);
+      //console.log(temp[temp.length - 1]);
       //console.log("temp",temp.length)
       let close = temp.map((e) => Number(e[4]));
       let volume = temp.map((e) => Number(e[5]));
@@ -130,6 +131,7 @@ class CustomSignalGeneratorClass extends SignalGenerator {
       this.lastDataTime = new Date(temp.slice(-1)[0][0]).toUTCString();
       this.close = Number(temp.slice(-1)[0][4]);
       this.open = Number(temp.slice(-1)[0][1]);
+      this.lastQuantity = Number(temp.slice(-1)[0][5]);
       //console.log(temp.slice(-1)[0][0]);
 
       if (
@@ -158,7 +160,7 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd < this.macd.aMacd
       ) {
         this.signal = "SELL";
-        this.printSignal(true);
+        this.printSignal(true, temp[temp.length - 1]);
         this.printDetails();
         this.connector.connection.emit("newData", {
           label: "signal",
@@ -203,6 +205,7 @@ class CustomSignalGeneratorClass extends SignalGenerator {
   };
   printDetails = () => {
     console.log("Time: ", this.lastDataTime);
+    console.log(`Last Price:${this.close} Last Quantity:${this.lastQuantity}`);
     console.log(`Hull Indicator: `, this.hma);
     console.log(`Confidence: `, this.confidence);
     console.log(`IchimokuResults: `, this.ichimokuResults);
