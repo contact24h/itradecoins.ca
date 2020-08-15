@@ -110,7 +110,12 @@ class CustomTradeManagementClass extends TradeManagementClass {
       );
     };
     printDetails(data);
-    this.sendDataToLogger(data.payload.join(",") + ";");
+    this.sendDataToLogger(
+      new Date(data.payload[6]).toUTCString() +
+        "," +
+        data.payload.join(",") +
+        ";"
+    );
     //to place stop_loss and take_profit orders one by one.
     //updating Entry,stoploss and exit trades trades
     if (!this.gettingOutOfPreviousTrade) {

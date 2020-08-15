@@ -21,21 +21,21 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     this.macd = {};
 
     //only to test.
-    //this.temp = "SELL";
-    //setInterval(() => {
-    //  this.temp = this.temp === "SELL" ? "BUY" : "SELL";
-    //  this.connector.connection.emit("newData", {
-    //    label: "signal",
-    //    payload: {
-    //      signal: this.temp,
-    //      Time: this.lastDataTime,
-    //      "Hull Indicator": this.hma,
-    //      Confidence: this.confidence,
-    //      IchimokuResults: this.ichimokuResults,
-    //      Macd: this.macd,
-    //    },
-    //  });
-    //}, 30000);
+    this.temp = "SELL";
+    setInterval(() => {
+      this.temp = this.temp === "SELL" ? "BUY" : "SELL";
+      this.connector.connection.emit("newData", {
+        label: "signal",
+        payload: {
+          signal: this.temp,
+          Time: this.lastDataTime,
+          "Hull Indicator": this.hma,
+          Confidence: this.confidence,
+          IchimokuResults: this.ichimokuResults,
+          Macd: this.macd,
+        },
+      });
+    }, 30000);
   }
 
   ichimokuCalculation = (data) => {
