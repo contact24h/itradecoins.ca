@@ -216,14 +216,14 @@ function convertIntoOrderParams(
 
 //take in order id and symbol and cancels the order.
 function cancelOrder(symbol, orderId, OrderAPI, binanceSecret, binanceAPI) {
-  console.log(
-    "cancelOrder",
-    symbol,
-    orderId,
-    OrderAPI,
-    binanceSecret,
-    binanceAPI
-  );
+  //console.log(
+  //  "cancelOrder",
+  //  symbol,
+  //  orderId,
+  //  OrderAPI,
+  //  binanceSecret,
+  //  binanceAPI
+  //);
   const params = { symbol, orderId, timestamp: new Date().getTime() };
   let res = makeSignature(params, binanceSecret);
   params.signature = res;
