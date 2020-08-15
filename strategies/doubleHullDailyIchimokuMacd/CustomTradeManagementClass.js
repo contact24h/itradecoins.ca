@@ -38,12 +38,12 @@ class CustomTradeManagementClass extends TradeManagementClass {
   };
 
   takeActionBasedOnSignal = (data) => {
-    console.log("trademanagement", data);
+    //console.log("trademanagement", data);
     const { signal } = data.payload;
     //this.Logger.connection.emit("newData", data);
 
     if (this.active) {
-      if (this.direction !== signal) {
+      if (this.direction !== signal && ["BUY", "SELL"].includes(signal)) {
         this.gettingOutOfPreviousTrade = true;
 
         //get out of the present  position
@@ -102,7 +102,14 @@ class CustomTradeManagementClass extends TradeManagementClass {
     }
   };
   updateValuesBasedOnTradeExecution = (data) => {
-    console.log("feedback received", data);
+    //console.log("feedback received", data);
+    const printDetails = (data) => {
+      const values = data.payload;
+      console.log(
+        `${values[9]} ${values[4]} ${values[7]} ${values[10]} ${values[4]} ${values[5]} ${values[8]}`
+      );
+    };
+    printDetails(data);
     this.sendDataToLogger(data.payload.join(",") + ";");
     //to place stop_loss and take_profit orders one by one.
     //updating Entry,stoploss and exit trades trades

@@ -28,6 +28,11 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     //    label: "signal",
     //    payload: {
     //      signal: this.temp,
+    //      Time: this.lastDataTime,
+    //      "Hull Indicator": this.hma,
+    //      Confidence: this.confidence,
+    //      IchimokuResults: this.ichimokuResults,
+    //      Macd: this.macd,
     //    },
     //  });
     //}, 30000);
@@ -136,8 +141,8 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd > this.macd.aMacd
       ) {
         this.signal = "BUY";
-        this.printDetails();
         this.printSignal(true);
+        this.printDetails();
         this.connector.connection.emit("newData", {
           label: "signal",
           payload: {
@@ -153,8 +158,8 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd < this.macd.aMacd
       ) {
         this.signal = "SELL";
-        this.printDetails();
         this.printSignal(true);
+        this.printDetails();
         this.connector.connection.emit("newData", {
           label: "signal",
           payload: {
@@ -191,16 +196,12 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         //});
       } else {
         //do nothing.
-        this.printDetails();
         this.printSignal(false);
+        this.printDetails();
       }
     }
   };
   printDetails = () => {
-    console.log(
-      "\n-----------------------------------------------------------"
-    );
-    console.log("signal generator");
     console.log("Time: ", this.lastDataTime);
     console.log(`Hull Indicator: `, this.hma);
     console.log(`Confidence: `, this.confidence);
@@ -208,14 +209,17 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     console.log("Macd: ", this.macd);
   };
   printSignal = (hasSignal) => {
+    console.log(
+      "\n-----------------------------------------------------------"
+    );
     if (hasSignal) {
       console.log("SIGNAL", this.signal);
     } else {
       console.log("SIGNAL", "NONE");
     }
-    console.log(
-      "\n-----------------------------------------------------------"
-    );
+    //console.log(
+    //  "\n-----------------------------------------------------------"
+    //);
   };
 }
 

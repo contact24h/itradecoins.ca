@@ -19,6 +19,7 @@ const binanceSecret =
 //testnet for testing if you plan to go real use  real api end point here.
 const OrderAPI = "https://testnet.binancefuture.com";
 const userStream = "wss://stream.binancefuture.com/ws/";
+const backendURL = "http://127.0.0.1:9000/update";
 const subscription1 = {
   method: "SUBSCRIBE",
   params: ["btcusdt@aggTrade"],
@@ -58,4 +59,5 @@ module.exports = {
   userStream,
   OrderAPI,
   intervals,
+  backendURL,
 };
