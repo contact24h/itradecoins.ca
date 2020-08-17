@@ -38,28 +38,25 @@ class CustomTradeManagementClass extends TradeManagementClass {
   };
   printDetails = (obj) => {
     console.log(`========================================`);
-    console.log(`Time:${obj.Time} signal:${obj.signal}`);
     console.log(
-      `LastPrice:${obj["Last Price"]}    LastQuantity:${obj["Last Quantity"]}`
+      `Time:${obj.Time}    signal:${obj.signal}    LastPrice:${
+        obj["Last Price"]
+      }    LastQuantity:${obj["Last Quantity"]}    status:${
+        this.active ? "POSITION TAKEN" : "NO POSITION"
+      }    side:${this.active ? this.direction : "NONE"}`
     );
-    console.log(
-      `status:${this.active ? "POSITION TAKEN" : "NO POSITION"}  side:${
-        this.active ? this.direction : "NONE"
-      }`
-    );
+    //console.log(
+    //  `LastPrice:${obj["Last Price"]}    LastQuantity:${obj["Last Quantity"]}`
+    //);
+    //console.log(
+    //  `status:${this.active ? "POSITION TAKEN" : "NO POSITION"}  side:${
+    //    this.active ? this.direction : "NONE"
+    //  }`
+    //);
     if (this.active) {
       console.log(
-        `${
-          this.active
-            ? "Price:" +
-              this.EntryTrade.ap +
-              " " +
-              "Quantity:" +
-              this.EntryTrade.q
-            : ""
-        }`
+        `Price:${this.EntryTrade.ap} Quantity: ${this.EntryTrade.q} SL:${this.StopLossTrade.sp} TP:${this.TakeProfitTrade.sp}`
       );
-      console.log(`sl:${this.StopLossTrade.sp} tp:${this.TakeProfitTrade.sp}`);
     }
   };
 
@@ -199,8 +196,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
         } else if (data.payload[3] === "FILLED") {
           this.StopLossTrade = {};
           //cancel remaining orders
-          //console.log(
-          //  "cancelling tp as sl is triggered",
+          console.log("stop loss is triggered");
           //  this.TakeProfitTrade.id
           //);
           this.sendDataToTradeCancellation(
@@ -224,17 +220,12 @@ class CustomTradeManagementClass extends TradeManagementClass {
             };
             //console.log("take profit order placed");
             console.log(
-              `new position taken: side:${this.direction}  price:${this.EntryTrade.ap} quantity:${this.EntryTrade.q}`
-            );
-            console.log(
-              `sl:${this.StopLossTrade.sp} tp:${this.TakeProfitTrade.sp}`
+              `position changed: Side:${this.direction}  Price:${this.EntryTrade.ap} Quantity:${this.EntryTrade.q} Sl:${this.StopLossTrade.sp} Tp:${this.TakeProfitTrade.sp}`
             );
           }
         } else if (data.payload[3] === "FILLED") {
           this.TakeProfitTrade = {};
-          console.log(
-            "cancelling  stop loss  orders because take profit was triggered"
-          );
+          console.log("take profit was triggered");
           this.sendDataToTradeCancellation(
             "STOP_MARKET",
             this.StopLossTrade.id
