@@ -21,21 +21,23 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     this.macd = {};
 
     //only to test.
-    this.temp = "SELL";
-    setInterval(() => {
-      this.temp = this.temp === "SELL" ? "BUY" : "SELL";
-      this.connector.connection.emit("newData", {
-        label: "signal",
-        payload: {
-          signal: this.temp,
-          Time: this.lastDataTime,
-          "Hull Indicator": this.hma,
-          Confidence: this.confidence,
-          IchimokuResults: this.ichimokuResults,
-          Macd: this.macd,
-        },
-      });
-    }, 30000);
+    //this.temp = "SELL";
+    //setInterval(() => {
+    //  this.temp = this.temp === "SELL" ? "BUY" : "SELL";
+    //  this.connector.connection.emit("newData", {
+    //    label: "signal",
+    //    payload: {
+    //      signal: this.temp,
+    //      Time: this.lastDataTime,
+    //      "Hull Indicator": this.hma,
+    //      Confidence: this.confidence,
+    //      IchimokuResults: this.ichimokuResults,
+    //      Macd: this.macd,
+    //      "Last Price": this.close,
+    //      "Last Quantity": this.lastQuantity,
+    //    },
+    //  });
+    //}, 30000);
   }
 
   ichimokuCalculation = (data) => {
@@ -143,12 +145,19 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd > this.macd.aMacd
       ) {
         this.signal = "BUY";
-        this.printSignal(true);
-        this.printDetails();
+        //this.printSignal(true);
+        //this.printDetails();
         this.connector.connection.emit("newData", {
           label: "signal",
           payload: {
             signal: this.signal,
+            Time: this.lastDataTime,
+            "Hull Indicator": this.hma,
+            Confidence: this.confidence,
+            IchimokuResults: this.ichimokuResults,
+            Macd: this.macd,
+            "Last Price": this.close,
+            "Last Quantity": this.lastQuantity,
           },
         });
       } else if (
@@ -160,12 +169,19 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         this.macd.macd < this.macd.aMacd
       ) {
         this.signal = "SELL";
-        this.printSignal(true, temp[temp.length - 1]);
-        this.printDetails();
+        //this.printSignal(true, temp[temp.length - 1]);
+        //this.printDetails();
         this.connector.connection.emit("newData", {
           label: "signal",
           payload: {
             signal: this.signal,
+            Time: this.lastDataTime,
+            "Hull Indicator": this.hma,
+            Confidence: this.confidence,
+            IchimokuResults: this.ichimokuResults,
+            Macd: this.macd,
+            "Last Price": this.close,
+            "Last Quantity": this.lastQuantity,
           },
         });
       } else if (
@@ -175,13 +191,6 @@ class CustomSignalGeneratorClass extends SignalGenerator {
       ) {
         //handled by the exchange
         //this.signal = "EXIT_BUY";
-        //this.printDetails();
-        //this.connector.connection.emit("newData", {
-        //  label: "signal",
-        //  payload: {
-        //    signal: this.signal,
-        //  },
-        //});
       } else if (
         this.hma.n1 > this.hma.n2 &&
         this.close > this.hma.n2 &&
@@ -190,16 +199,23 @@ class CustomSignalGeneratorClass extends SignalGenerator {
         //handled by the exchange
         //this.signal = "EXIT_SELL";
         //this.printDetails();
-        //this.connector.connection.emit("newData", {
-        //  label: "signal",
-        //  payload: {
-        //    signal: this.signal,
-        //  },
-        //});
       } else {
         //do nothing.
-        this.printSignal(false);
-        this.printDetails();
+        //this.printSignal(false);
+        //this.printDetails();
+        this.connector.connection.emit("newData", {
+          label: "signal",
+          payload: {
+            signal: "None",
+            Time: this.lastDataTime,
+            "Hull Indicator": this.hma,
+            Confidence: this.confidence,
+            IchimokuResults: this.ichimokuResults,
+            Macd: this.macd,
+            "Last Price": this.close,
+            "Last Quantity": this.lastQuantity,
+          },
+        });
       }
     }
   };

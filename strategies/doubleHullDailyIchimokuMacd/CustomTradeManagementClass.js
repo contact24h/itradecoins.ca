@@ -36,11 +36,38 @@ class CustomTradeManagementClass extends TradeManagementClass {
       payload,
     });
   };
+  printDetails = (obj) => {
+    console.log(`========================================`);
+    console.log(`Time:${obj.Time} signal:${obj.signal}`);
+    console.log(
+      `LastPrice:${obj["Last Price"]}    LastQuantity:${obj["Last Quantity"]}`
+    );
+    console.log(
+      `status:${this.active ? "POSITION TAKEN" : "NO POSITION"}  side:${
+        this.active ? this.direction : "NONE"
+      }`
+    );
+    if (this.active) {
+      console.log(
+        `${
+          this.active
+            ? "Price:" +
+              this.EntryTrade.ap +
+              " " +
+              "Quantity:" +
+              this.EntryTrade.q
+            : ""
+        }`
+      );
+      console.log(`sl:${this.StopLossTrade.sp} tp:${this.TakeProfitTrade.sp}`);
+    }
+  };
 
   takeActionBasedOnSignal = (data) => {
     //console.log("trademanagement", data);
     const { signal } = data.payload;
     //this.Logger.connection.emit("newData", data);
+    this.printDetails(data.payload);
 
     if (this.active) {
       if (this.direction !== signal && ["BUY", "SELL"].includes(signal)) {
@@ -55,7 +82,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
             quantity: this.quantity,
           },
         ]);
-        console.log(`Action: Got out of position cancelled all the orders`);
+        console.log(`Action: Getting out of position as signal reversed`);
       } else {
         //code not required as binance checks stop loss
         //and take profit.
@@ -67,7 +94,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
         //console.log(this.rp);
         this.direction = "BUY";
         this.quantity = this.rp.quantity;
-        console.log(`Action: BUY ${this.quantity} @ MARKET`);
+        //console.log(`Action: BUY ${this.quantity} @ MARKET`);
         this.sendDataToTradePlacement([
           {
             side: "BUY",
@@ -82,7 +109,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
         this.rp = transformRiskParameters(this.riskParameters);
         this.direction = "SELL";
         this.quantity = this.rp.quantity;
-        console.log(`Action: Sell ${this.quantity} @MARKET`);
+        //console.log(`Action: Sell ${this.quantity} @MARKET`);
         this.sendDataToTradePlacement([
           {
             side: "SELL",
@@ -93,11 +120,11 @@ class CustomTradeManagementClass extends TradeManagementClass {
         ]);
         return;
       } else {
-        console.log("do nothing");
+        //console.log("do nothing");
         return;
       }
     } else {
-      console.log("do nothing");
+      //console.log("do nothing");
       return;
     }
   };
@@ -109,12 +136,13 @@ class CustomTradeManagementClass extends TradeManagementClass {
         `${values[9]} ${values[4]} ${values[7]} ${values[10]} ${values[4]} ${values[5]} ${values[8]}`
       );
     };
-    printDetails(data);
+    //printDetails(data);
     this.sendDataToLogger(
-      new Date(data.payload[6]).toUTCString() +
-        "," +
-        data.payload.join(",") +
-        ";"
+      data.raw
+      //  new Date(data.payload[6]).toUTCString() +
+      //    "," +
+      //    data.payload.join(",") +
+      //    ";"
     );
     //to place stop_loss and take_profit orders one by one.
     //updating Entry,stoploss and exit trades trades
@@ -125,9 +153,10 @@ class CustomTradeManagementClass extends TradeManagementClass {
         } else if (data.payload[3] === "FILLED") {
           this.EntryTrade.status = "FILLED";
           this.EntryTrade.ap = Number(data.payload[5]);
-          console.log("entry position taken");
+          this.EntryTrade.q = Number(data.payload[10]);
+          //console.log(`new position taken: side:${this.direction}  price:${this.EntryTrade.ap} quantity:${this.EntryTrade.q}`);
           //place stop loss
-          console.log("placing stop loss");
+          //console.log("placing stop loss");
           const side = this.direction === "BUY" ? "SELL" : "BUY";
           const price =
             this.direction === "BUY"
@@ -145,10 +174,14 @@ class CustomTradeManagementClass extends TradeManagementClass {
       } else if (data.payload[4] == "STOP_MARKET") {
         if (data.payload[3] === "NEW") {
           if (!(data.payload[1] === this.StopLossTrade.id)) {
-            this.StopLossTrade = { id: data.payload[1], status: "PLACED" };
-            console.log("stoploss placed");
+            this.StopLossTrade = {
+              id: data.payload[1],
+              status: "PLACED",
+              sp: data.payload[8],
+            };
+            //console.log("stoploss placed");
             //place take Profit
-            console.log("placing take profit");
+            //console.log("placing take profit");
             const side = this.direction === "BUY" ? "SELL" : "BUY";
             const price =
               this.direction === "BUY"
@@ -166,10 +199,10 @@ class CustomTradeManagementClass extends TradeManagementClass {
         } else if (data.payload[3] === "FILLED") {
           this.StopLossTrade = {};
           //cancel remaining orders
-          console.log(
-            "cancelling tp as sl is triggered",
-            this.TakeProfitTrade.id
-          );
+          //console.log(
+          //  "cancelling tp as sl is triggered",
+          //  this.TakeProfitTrade.id
+          //);
           this.sendDataToTradeCancellation(
             "TAKE_PROFIT_MARKET",
             this.TakeProfitTrade.id
@@ -177,15 +210,25 @@ class CustomTradeManagementClass extends TradeManagementClass {
         } else if (data.payload[3] === "CANCELED") {
           this.StopLossTrade = {};
           //cancel remaining orders
-          console.log("stop loss order cancelled");
-          console.log("all trades cancelled waiting for signal");
+          //console.log("stop loss order cancelled");
+          //console.log("all trades cancelled waiting for signal");
           this.active = false;
         }
       } else if (data.payload[4] == "TAKE_PROFIT_MARKET") {
         if (data.payload[3] === "NEW") {
           if (!(data.payload[1] === this.TakeProfitTrade.id)) {
-            this.TakeProfitTrade = { id: data.payload[1], status: "PLACED" };
-            console.log("take profit order placed");
+            this.TakeProfitTrade = {
+              id: data.payload[1],
+              status: "PLACED",
+              sp: data.payload[8],
+            };
+            //console.log("take profit order placed");
+            console.log(
+              `new position taken: side:${this.direction}  price:${this.EntryTrade.ap} quantity:${this.EntryTrade.q}`
+            );
+            console.log(
+              `sl:${this.StopLossTrade.sp} tp:${this.TakeProfitTrade.sp}`
+            );
           }
         } else if (data.payload[3] === "FILLED") {
           this.TakeProfitTrade = {};
@@ -199,18 +242,18 @@ class CustomTradeManagementClass extends TradeManagementClass {
         } else if (data.payload[3] === "CANCELED") {
           this.TakeProfitTrade = {};
           //cancel remaining orders
-          console.log("take profit order cancelled");
-          console.log("all trades cancelled waiting for signal");
+          //console.log("take profit order cancelled");
+          //console.log("all trades cancelled waiting for signal");
           this.active = false;
         }
       }
     } else {
       if (data.payload[4] == "MARKET") {
         if (data.payload[3] === "NEW") {
-          console.log("opposite trade initiated");
+          //console.log("opposite trade initiated");
         } else if (data.payload[3] === "FILLED") {
           this.EntryTrade = {};
-          console.log("got out of present position");
+          //console.log("got out of present position");
           //cancel stop loss
           this.sendDataToTradeCancellation(
             "STOP_MARKET",
@@ -220,7 +263,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
       } else if (data.payload[4] == "STOP_MARKET") {
         if (data.payload[3] === "CANCELED") {
           this.StopLossTrade = {};
-          console.log("stop loss cancelled");
+          //console.log("stop loss cancelled");
           //cancel take profit
           this.sendDataToTradeCancellation(
             "TAKE_PROFIT_MARKET",
@@ -230,7 +273,7 @@ class CustomTradeManagementClass extends TradeManagementClass {
       } else if (data.payload[4] == "TAKE_PROFIT_MARKET") {
         if (data.payload[3] === "CANCELED") {
           this.TakeProfitTrade = {};
-          console.log("take profit order cancelled");
+          //console.log("take profit order cancelled");
           //cancel take profit
           this.TakeProfitTrade = {};
           this.gettingOutOfPreviousTrade = false;
