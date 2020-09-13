@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/harshakns/trading_crypto_jeseul#readme",
   "dependencies": {
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "tulind": "^0.8.18",
     "ws": "^7.2.3"
   }
