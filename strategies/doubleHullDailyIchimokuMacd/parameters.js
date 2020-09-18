@@ -10,10 +10,12 @@ const binanceRESTEndPoint = "https://api.binance.com";
 
 //replace the below api and secret with your data.
 const binanceAPI =
-  "866c4d00bfb9feb70d1ebf7b632ba3e4c0bd1aac4ff268adc29529acc306213c";
+  "23542eaf8ff61ec6516e3a06ec401f5021207657a5dea42251dc26aa3a344ef9";
+//"866c4d00bfb9feb70d1ebf7b632ba3e4c0bd1aac4ff268adc29529acc306213c";
 //"600044b043eedb449917d9020724b9e9855297a93c7b6fb92f64704cae633a17";
 const binanceSecret =
-  "ad3321dd34c471438f3b7d042b21e06942ef28708a5ff7dd164df06b2bbb810c";
+  "00e22f71ea236445fed191165392ed351f58cfada066deb790ee23cb76e2b678";
+//"ad3321dd34c471438f3b7d042b21e06942ef28708a5ff7dd164df06b2bbb810c";
 //"b0589308d947920a6a0eb66f13e992d234e5b9943edd9d1d364f8e8f2b4dbb87";
 
 //testnet for testing if you plan to go real use  real api end point here.

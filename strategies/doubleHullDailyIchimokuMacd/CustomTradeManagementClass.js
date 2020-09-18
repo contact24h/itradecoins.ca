@@ -88,7 +88,6 @@ class CustomTradeManagementClass extends TradeManagementClass {
       if (signal === "BUY") {
         this.active = true;
         this.rp = transformRiskParameters(this.riskParameters);
-        //console.log(this.rp);
         this.direction = "BUY";
         this.quantity = this.rp.quantity;
         //console.log(`Action: BUY ${this.quantity} @ MARKET`);
@@ -117,22 +116,23 @@ class CustomTradeManagementClass extends TradeManagementClass {
         ]);
         return;
       } else {
-        //console.log("do nothing");
+        //code must never reach here.
         return;
       }
     } else {
+      //code must never reach here.
       //console.log("do nothing");
       return;
     }
   };
   updateValuesBasedOnTradeExecution = (data) => {
     //console.log("feedback received", data);
-    const printDetails = (data) => {
-      const values = data.payload;
-      console.log(
-        `${values[9]} ${values[4]} ${values[7]} ${values[10]} ${values[4]} ${values[5]} ${values[8]}`
-      );
-    };
+    //const printDetails = (data) => {
+    //  const values = data.payload;
+    //  console.log(
+    //    `${values[9]} ${values[4]} ${values[7]} ${values[10]} ${values[4]} ${values[5]} ${values[8]}`
+    //  );
+    //};
     //printDetails(data);
     this.sendDataToLogger(
       data.raw

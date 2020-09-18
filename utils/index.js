@@ -240,7 +240,7 @@ function cancelOrder(symbol, orderId, OrderAPI, binanceSecret, binanceAPI) {
       return res.json();
     })
     .then((r) => {
-      //console.log("result", r);
+      console.log("result", r);
       return r;
     })
     .catch((err) => console.log(err.message));

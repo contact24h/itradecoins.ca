@@ -37,7 +37,7 @@ class CustomSignalGeneratorClass extends SignalGenerator {
     //      "Last Quantity": this.lastQuantity,
     //    },
     //  });
-    //}, 30000);
+    //}, 60000);
   }
 
   ichimokuCalculation = (data) => {
