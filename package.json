@@ -21,6 +21,6 @@
   "dependencies": {
     "node-fetch": "^2.6.0",
     "tulind": "^0.8.18",
-    "ws": "^7.2.3"
+    "ws": "^7.4.6"
   }
 }
